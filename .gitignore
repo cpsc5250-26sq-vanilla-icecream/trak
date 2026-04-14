@@ -3,8 +3,10 @@
 *.lock
 *.log
 *.pyc
+*.iml
 *.swp
 .buildlog/
+.metadata
 .history
 
 
