@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.trak"
+    namespace = "com.vic.trak"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

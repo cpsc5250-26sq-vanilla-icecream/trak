@@ -1,0 +1,210 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Trak - Step Tracking App Backend
+
+Parameters:
+  UserPoolId:
+    Type: String
+    Description: Existing Cognito User Pool ID
+  UserPoolClientId:
+    Type: String
+    Description: Existing Cognito User Pool Client ID
+
+Globals:
+  Function:
+    Timeout: 10
+    Runtime: nodejs22.x
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        USERS_TABLE: !Ref UsersTable
+        STEPS_TABLE: !Ref StepsTable
+        FRIENDS_TABLE: !Ref FriendsTable
+
+Resources:
+
+  # ── API ──────────────────────────────────────────────────────────────────────
+
+  TrakApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPoolId}"
+              audience:
+                - !Ref UserPoolClientId
+
+  # ── DynamoDB Tables ───────────────────────────────────────────────────────────
+
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-users"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: username
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: username-index
+          KeySchema:
+            - AttributeName: username
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  StepsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-steps"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+
+  FriendsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-friends"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: friendId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: friendId
+          KeyType: RANGE
+
+  # ── Lambda Functions ──────────────────────────────────────────────────────────
+
+  UsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/users/
+      Handler: app.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        UpsertUser:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /users
+            Method: POST
+        GetMe:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /users/me
+            Method: GET
+        GetUser:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /users/{userId}
+            Method: GET
+
+  StepsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/steps/
+      Handler: app.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref StepsTable
+      Events:
+        SubmitSteps:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /steps
+            Method: POST
+        GetSteps:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /steps
+            Method: GET
+
+  LeaderboardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/leaderboard/
+      Handler: app.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref FriendsTable
+      Events:
+        GetLeaderboard:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /leaderboard
+            Method: GET
+
+  FriendsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/friends/
+      Handler: app.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref FriendsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        AddFriend:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /friends
+            Method: POST
+        RemoveFriend:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /friends/{friendId}
+            Method: DELETE
+        ListFriends:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /friends
+            Method: GET
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway base URL
+    Value: !Sub "https://${TrakApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  UsersTableName:
+    Value: !Ref UsersTable
+  StepsTableName:
+    Value: !Ref StepsTable
+  FriendsTableName:
+    Value: !Ref FriendsTable
+
