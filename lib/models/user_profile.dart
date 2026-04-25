@@ -10,4 +10,22 @@ class UserProfile {
     required this.displayName,
     this.avatarUrl,
   });
+
+  factory UserProfile.fromMap(Map<String, dynamic> map) {
+    return UserProfile(
+      userId: map['userId'],
+      username: map['username'],
+      displayName: map['displayName'],
+      avatarUrl: map['avatarUrl'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'userId': userId,
+      'username': username,
+      'displayName': displayName,
+      'avatarUrl': avatarUrl,
+    };
+  }
 }
