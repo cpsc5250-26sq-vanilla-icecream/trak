@@ -1,4 +1,4 @@
-package com.example.trak
+package com.vic.trak
 
 import io.flutter.embedding.android.FlutterActivity
 
