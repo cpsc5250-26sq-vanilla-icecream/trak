@@ -9,48 +9,46 @@ class UserProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(profile.username),
-      ),
+      appBar: AppBar(title: Text(profile.username)),
       body: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Center(
-            child: Column(
-              children: [
-                // Avatar
-                CircleAvatar(
-                  radius: 40,
-                  backgroundImage: profile.avatarUrl != null
+        padding: const EdgeInsets.all(8),
+        child: Center(
+          child: Column(
+            children: [
+              // Avatar
+              CircleAvatar(
+                radius: 40,
+                backgroundImage: profile.avatarUrl != null
                     ? NetworkImage(profile.avatarUrl!)
                     : null,
-                ),
-                // Username
-                const SizedBox(height: 8),
-                Text(
-                  '@${profile.username}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+              ),
+              // Username
+              const SizedBox(height: 8),
+              Text(
+                '@${profile.username}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
 
-                // Display Name
-                const SizedBox(height: 24),
-                Text(
-                  profile.displayName,
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                    onPressed: (){
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => EditProfilePage(profile: profile),
-                        ),
-                      );
-                    },
-                    child: Text("Edit Profile")
-                )
-              ],
-            ),
+              // Display Name
+              const SizedBox(height: 24),
+              Text(
+                profile.displayName,
+                style: Theme.of(context).textTheme.headlineLarge,
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => EditProfilePage(profile: profile),
+                    ),
+                  );
+                },
+                child: Text("Edit Profile"),
+              ),
+            ],
           ),
+        ),
       ),
     );
   }

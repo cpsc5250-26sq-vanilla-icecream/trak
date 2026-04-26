@@ -18,11 +18,7 @@ class UserDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-    return openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
