@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trak/pages/user_profile_page.dart';
+import 'models/user_profile.dart';
 import 'providers/app_providers.dart';
 import 'repository/mock_app_repository.dart';
 
@@ -80,6 +82,23 @@ class _HomePage extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => UserProfilePage(
+                profile: UserProfile(
+                  userId: '1',
+                  username: 'testuser',
+                  displayName: 'Test User',
+                  avatarUrl: null,
+                ),
+              ),
+            ),
+          );
+        },
+        child: const Icon(Icons.person),
       ),
     );
   }
