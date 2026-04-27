@@ -5,7 +5,7 @@ import 'package:trak/models/user_profile.dart';
 import 'package:trak/repository/app_repository.dart';
 import '../database/app_database.dart';
 
-class SqfliteAppRepository implements AppRepository{
+class SqfliteAppRepository implements AppRepository {
   final AppDatabase _db = AppDatabase.instance;
   @override
   Future<void> addFriend(String targetUserId) {
@@ -54,5 +54,4 @@ class SqfliteAppRepository implements AppRepository{
     // TODO: implement watchStepCount
     throw UnimplementedError();
   }
-
 }

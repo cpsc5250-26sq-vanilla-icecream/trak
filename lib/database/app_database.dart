@@ -23,7 +23,7 @@ class AppDatabase {
   Future _createDB(Database db, int version) async {
     await db.execute('''
     CREATE TABLE leaderboard_cache (
-       user_id TEXT PRIMARY KEY,
+      user_id TEXT PRIMARY KEY,
       username TEXT NOT NULL,
       avatar_url TEXT,
       points INTEGER NOT NULL,
@@ -61,14 +61,44 @@ class AppDatabase {
     ''');
   }
 
-// TODO: IMPLEMENTATION OF QUERIES
+  // TODO: IMPLEMENTATION OF QUERIES
 
-// LEADERBOARD
+  // LEADERBOARD
 
-// STEPS QUERIES
+  // STEPS QUERIES
+  // Update
+  Future<void> upsertSteps({
+    required String userId,
+    required String date,
+    required int stepCount,
+  }) async {
+    final db = await database;
+    await db.insert("step_history_cache", {
+      'user_id': userId,
+      'date': date,
+      'step_count': stepCount,
+      'cached_at': DateTime.now(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
 
-// ITEM INVENTORY
+  // Get Step Count
+  Future<int?> getCurrentSteps({
+    required String userId,
+    required String date,
+  }) async {
+    final db = await database;
+    final result = await db.query(
+      'step_history_cache',
+      where: 'user_id = ? AND date = ?',
+      whereArgs: [userId, date],
+    );
 
-// SYNC META
+    if (result.isNotEmpty) {
+      return result.first['step_count'] as int;
+    }
+    return null;
+  }
+  // ITEM INVENTORY
 
+  // SYNC META
 }
