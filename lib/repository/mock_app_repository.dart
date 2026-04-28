@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'app_repository.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/inventory_item.dart';
@@ -109,7 +110,16 @@ class MockAppRepository implements AppRepository {
   }
 
   @override
-  Future<void> addFriend(String targetUserId) async {}
+  Future<void> addFriend(String targetUserId) async {
+    final newEntry = LeaderboardEntry(
+      userId: targetUserId,
+      username: targetUserId,
+      totalPoints: Random().nextInt(3000) + 500,
+      rank: 0,
+    );
+    _leaderboard = _rerank([..._leaderboard, newEntry]);
+    _leaderboardController.add(_leaderboard);
+  }
 
   @override
   Future<void> removeFriend(String targetUserId) async {
