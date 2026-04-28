@@ -1,8 +1,7 @@
 import 'package:health/health.dart';
 
 class HealthRepository {
-  final Health _health;
-  HealthRepository(this._health);
+  final Health _health = Health();
 
   // Get permission from Health Connect
   // This must be called before getting data!
