@@ -61,12 +61,23 @@ class AppDatabase {
     ''');
   }
 
-  // TODO: IMPLEMENTATION OF QUERIES
-
   // LEADERBOARD
+  // Get new leaderboard
+  Future<void> replaceLeaderboard(List<Map<String, dynamic>> data) async {
+    final db = await database;
+    await db.delete('leaderboard_cache');
+    for (final row in data) {
+      await db.insert('leaderboard_cache', row);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getLeaderboard() async {
+    final db = await database;
+    return db.query('leaderboard_cache', orderBy: 'rank ASC');
+  }
 
   // STEPS QUERIES
-  // Update
+  // Update Steps Count
   Future<void> upsertSteps({
     required String userId,
     required String date,
@@ -98,7 +109,60 @@ class AppDatabase {
     }
     return null;
   }
+
   // ITEM INVENTORY
+  // Update Inventory
+  Future<void> replaceInventory(
+    String userId,
+    List<Map<String, dynamic>> items,
+  ) async {
+    final db = await database;
+    await db.delete(
+      'inventory_cache',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+    for (final item in items) {
+      item['user_id'] = userId;
+      await db.insert('inventory_cache', item);
+    }
+  }
+
+  // Get inventory
+  Future<List<Map<String, dynamic>>> getInventory(String userId) async {
+    final db = await database;
+
+    return db.query(
+      'inventory_cache',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+  }
 
   // SYNC META
+  // Update the time in Sync Table
+  Future<void> updateSyncTime(String type) async {
+    final db = await database;
+
+    await db.insert('sync_meta', {
+      'data_type': type,
+      'last_synced_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  // Get the last synced time
+  Future<int?> getLastSyncTime(String type) async {
+    final db = await database;
+
+    final result = await db.query(
+      'sync_meta',
+      where: 'data_type = ?',
+      whereArgs: [type],
+    );
+
+    if (result.isNotEmpty) {
+      return result.first['last_synced_at'] as int;
+    }
+    return null;
+  }
 }
