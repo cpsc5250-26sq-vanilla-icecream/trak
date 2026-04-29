@@ -76,7 +76,7 @@ class AppDatabase {
   Future<List<LeaderboardEntry>> getLeaderboard() async {
     final db = await database;
     final row = await db.query('leaderboard_cache', orderBy: 'rank ASC');
-    return row.map((e)=>LeaderboardEntry.fromMap(e)).toList();
+    return row.map((e) => LeaderboardEntry.fromMap(e)).toList();
   }
 
   // STEPS QUERIES
