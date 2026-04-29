@@ -21,8 +21,13 @@ Future<void> main() async {
 }
 
 Future<void> _configureAmplify() async {
-  await Amplify.addPlugin(AmplifyAuthCognito());
-  await Amplify.configure(amplifyConfig);
+  try {
+    await Amplify.addPlugin(AmplifyAuthCognito());
+    await Amplify.configure(amplifyConfig);
+  } on Exception catch (e) {
+    debugPrint('Failed to configure Amplify: $e');
+    rethrow;
+  }
 }
 
 class TrakApp extends StatelessWidget {
@@ -45,13 +50,23 @@ class _AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(authStateProvider, (_, next) {
+      if (!next.isLoading) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          }
+        });
+      }
+    });
+
     final authState = ref.watch(authStateProvider);
 
     return authState.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => const LoginScreen(),
-      data: (user) => user != null ? const _HomePage() : const LoginScreen(),
+      data: (user) => user != null ? const HomeScreen() : const LoginScreen(),
     );
   }
 }
