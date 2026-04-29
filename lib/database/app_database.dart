@@ -1,5 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:trak/models/inventory_item.dart';
+import 'package:trak/models/leaderboard_entry.dart';
 
 class AppDatabase {
   static final AppDatabase instance = AppDatabase._init();
@@ -71,9 +73,10 @@ class AppDatabase {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getLeaderboard() async {
+  Future<List<LeaderboardEntry>> getLeaderboard() async {
     final db = await database;
-    return db.query('leaderboard_cache', orderBy: 'rank ASC');
+    final row = await db.query('leaderboard_cache', orderBy: 'rank ASC');
+    return row.map((e)=>LeaderboardEntry.fromMap(e)).toList();
   }
 
   // STEPS QUERIES
@@ -129,14 +132,15 @@ class AppDatabase {
   }
 
   // Get inventory
-  Future<List<Map<String, dynamic>>> getInventory(String userId) async {
+  Future<List<InventoryItem>> getInventory(String userId) async {
     final db = await database;
 
-    return db.query(
+    final row = await db.query(
       'inventory_cache',
       where: 'user_id = ?',
       whereArgs: [userId],
     );
+    return row.map((e) => InventoryItem.fromMap(e)).toList();
   }
 
   // SYNC META
