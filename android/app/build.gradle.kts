@@ -1,4 +1,4 @@
-    plugins {
+plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -6,7 +6,7 @@
 }
 
 android {
-    namespace = "com.example.trak"
+    namespace = "com.vic.trak"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
