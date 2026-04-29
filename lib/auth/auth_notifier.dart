@@ -8,13 +8,14 @@ final authStateProvider = AsyncNotifierProvider<AuthNotifier, AuthUser?>(
 class AuthNotifier extends AsyncNotifier<AuthUser?> {
   @override
   Future<AuthUser?> build() async {
-    Amplify.Hub.listen(HubChannel.Auth, (event) {
+    final subscription = Amplify.Hub.listen(HubChannel.Auth, (event) {
       if (event.type == AuthHubEventType.signedIn) {
         refresh();
       } else if (event.type == AuthHubEventType.signedOut) {
         state = const AsyncData(null);
       }
     });
+    ref.onDispose(subscription.cancel);
 
     try {
       return await Amplify.Auth.getCurrentUser();
