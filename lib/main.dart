@@ -7,6 +7,7 @@ import 'auth/auth_notifier.dart';
 import 'auth/login_screen.dart';
 import 'providers/app_providers.dart';
 import 'repository/mock_app_repository.dart';
+import 'screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,72 +52,6 @@ class _AuthGate extends ConsumerWidget {
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => const LoginScreen(),
       data: (user) => user != null ? const _HomePage() : const LoginScreen(),
-    );
-  }
-}
-
-// Temporary home screen — replace with real screens as they're built.
-class _HomePage extends ConsumerWidget {
-  const _HomePage();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final steps = ref.watch(stepCountProvider);
-    final leaderboard = ref.watch(leaderboardProvider);
-    final user = ref.watch(currentUserProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trak'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authStateProvider.notifier).signOut(),
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            user.when(
-              data: (u) => Text(
-                'Hello, ${u.displayName}',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              loading: () => const SizedBox.shrink(),
-              error: (e, _) => Text('Error: $e'),
-            ),
-            const SizedBox(height: 24),
-            Text('Steps today', style: Theme.of(context).textTheme.labelLarge),
-            steps.when(
-              data: (s) =>
-                  Text('$s', style: Theme.of(context).textTheme.displayMedium),
-              loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text('Error: $e'),
-            ),
-            const SizedBox(height: 32),
-            Text('Leaderboard', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            leaderboard.when(
-              data: (entries) => Column(
-                children: entries
-                    .map(
-                      (e) => ListTile(
-                        leading: Text('#${e.rank}'),
-                        title: Text(e.username),
-                        trailing: Text('${e.totalPoints} pts'),
-                      ),
-                    )
-                    .toList(),
-              ),
-              loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text('Error: $e'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
