@@ -31,10 +31,7 @@ class LoginScreen extends ConsumerWidget {
               Text(
                 'Track steps. Challenge friends.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
               ),
               const Spacer(flex: 3),
               if (isLoading)
@@ -84,10 +81,7 @@ class _GoogleButtonState extends State<_GoogleButton> {
         duration: const Duration(milliseconds: 100),
         alignment: Alignment.center,
         child: Center(
-          child: Image.asset(
-            'assets/web_dark_rd_ctn@2x.png',
-            width: 220,
-          ),
+          child: Image.asset('assets/web_dark_rd_ctn@2x.png', width: 220),
         ),
       ),
     );
