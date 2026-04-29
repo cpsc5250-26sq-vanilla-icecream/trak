@@ -63,8 +63,9 @@ void main() {
       expect(find.byType(Image), findsOneWidget);
     });
 
-    testWidgets('shows loading indicator while auth is in progress',
-        (tester) async {
+    testWidgets('shows loading indicator while auth is in progress', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _buildTestWidget(_FakeAuthNotifier(stayLoading: true)),
       );
