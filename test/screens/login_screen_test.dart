@@ -8,13 +8,8 @@ import 'package:trak/auth/auth_notifier.dart';
 import 'package:trak/auth/login_screen.dart';
 
 class _FakeAuthNotifier extends AuthNotifier {
-  _FakeAuthNotifier({
-    this.initialUser,
-    this.shouldThrow = false,
-    this.stayLoading = false,
-  });
+  _FakeAuthNotifier({this.shouldThrow = false, this.stayLoading = false});
 
-  final AuthUser? initialUser;
   final bool shouldThrow;
   final bool stayLoading;
   bool signInCalled = false;
@@ -23,7 +18,7 @@ class _FakeAuthNotifier extends AuthNotifier {
   Future<AuthUser?> build() async {
     if (shouldThrow) throw Exception('Auth failed');
     if (stayLoading) await Completer<void>().future;
-    return initialUser;
+    return null;
   }
 
   @override
