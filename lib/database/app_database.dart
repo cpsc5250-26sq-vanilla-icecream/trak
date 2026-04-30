@@ -7,6 +7,9 @@ class AppDatabase {
   static final AppDatabase instance = AppDatabase._init();
   static Database? _db;
 
+  static const syncKeySteps = 'steps';
+  static const syncKeyLeaderboard = 'leaderboard';
+
   AppDatabase._init();
 
   Future<Database> get database async {
@@ -35,23 +38,19 @@ class AppDatabase {
       ''');
     await db.execute('''
       CREATE TABLE step_history_cache (
-      user_id TEXT NOT NULL,
-      date TEXT NOT NULL,
+      date TEXT PRIMARY KEY,
       step_count INTEGER NOT NULL,
-      cached_at INTEGER NOT NULL,
-      PRIMARY KEY (user_id, date)
+      cached_at INTEGER NOT NULL
       )
     ''');
 
     await db.execute('''
       CREATE TABLE inventory_cache (
-      user_id TEXT NOT NULL,
-      item_id TEXT NOT NULL,
+      item_id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT NOT NULL,
       type TEXT NOT NULL,
-      expires_at INTEGER NOT NULL,
-      PRIMARY KEY (user_id, item_id)
+      expires_at INTEGER NOT NULL
       )
     ''');
 
@@ -63,14 +62,14 @@ class AppDatabase {
     ''');
   }
 
-  // LEADERBOARD
-  // Get new leaderboard
-  Future<void> replaceLeaderboard(List<Map<String, dynamic>> data) async {
+  Future<void> replaceLeaderboard(List<LeaderboardEntry> entries) async {
     final db = await database;
-    await db.delete('leaderboard_cache');
-    for (final row in data) {
-      await db.insert('leaderboard_cache', row);
-    }
+    await db.transaction((txn) async {
+      await txn.delete('leaderboard_cache');
+      for (final entry in entries) {
+        await txn.insert('leaderboard_cache', entry.toMap());
+      }
+    });
   }
 
   Future<List<LeaderboardEntry>> getLeaderboard() async {
@@ -79,72 +78,59 @@ class AppDatabase {
     return row.map((e) => LeaderboardEntry.fromMap(e)).toList();
   }
 
-  // STEPS QUERIES
-  // Update Steps Count
   Future<void> upsertSteps({
-    required String userId,
     required String date,
     required int stepCount,
   }) async {
     final db = await database;
-    await db.insert("step_history_cache", {
-      'user_id': userId,
+    await db.insert('step_history_cache', {
       'date': date,
       'step_count': stepCount,
-      'cached_at': DateTime.now(),
+      'cached_at': DateTime.now().millisecondsSinceEpoch,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  // Get Step Count
-  Future<int?> getCurrentSteps({
-    required String userId,
-    required String date,
-  }) async {
+  Future<int?> getCurrentSteps({required String date}) async {
     final db = await database;
     final result = await db.query(
       'step_history_cache',
-      where: 'user_id = ? AND date = ?',
-      whereArgs: [userId, date],
+      where: 'date = ?',
+      whereArgs: [date],
     );
-
     if (result.isNotEmpty) {
       return result.first['step_count'] as int;
     }
     return null;
   }
 
-  // ITEM INVENTORY
-  // Update Inventory
-  Future<void> replaceInventory(
-    String userId,
-    List<Map<String, dynamic>> items,
-  ) async {
+  Future<void> upsertInventory(List<InventoryItem> items) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (final item in items) {
+        await txn.insert(
+          'inventory_cache',
+          item.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
+  }
+
+  Future<void> removeInventoryItem(String itemId) async {
     final db = await database;
     await db.delete(
       'inventory_cache',
-      where: 'user_id = ?',
-      whereArgs: [userId],
+      where: 'item_id = ?',
+      whereArgs: [itemId],
     );
-    for (final item in items) {
-      item['user_id'] = userId;
-      await db.insert('inventory_cache', item);
-    }
   }
 
-  // Get inventory
-  Future<List<InventoryItem>> getInventory(String userId) async {
+  Future<List<InventoryItem>> getInventory() async {
     final db = await database;
-
-    final row = await db.query(
-      'inventory_cache',
-      where: 'user_id = ?',
-      whereArgs: [userId],
-    );
-    return row.map((e) => InventoryItem.fromMap(e)).toList();
+    final rows = await db.query('inventory_cache');
+    return rows.map((e) => InventoryItem.fromMap(e)).toList();
   }
 
-  // SYNC META
-  // Update the time in Sync Table
   Future<void> updateSyncTime(String type) async {
     final db = await database;
 
@@ -154,7 +140,6 @@ class AppDatabase {
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  // Get the last synced time
   Future<int?> getLastSyncTime(String type) async {
     final db = await database;
 

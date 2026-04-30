@@ -22,6 +22,16 @@ class LeaderboardEntry {
     );
   }
 
+  factory LeaderboardEntry.fromCloud(Map<String, dynamic> map) {
+    return LeaderboardEntry(
+      userId: map['userId'],
+      username: map['username'],
+      avatarUrl: map['avatarUrl'],
+      totalPoints: map['points'],
+      rank: map['rank'],
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'user_id': userId,

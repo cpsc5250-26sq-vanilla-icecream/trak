@@ -32,11 +32,14 @@ async function upsertUser(event) {
   const existing = await ddb.send(new GetCommand({ TableName: USERS_TABLE, Key: { userId } }));
   const prev = existing.Item ?? {};
 
+  const resolvedUsername = username ?? prev.username;
+  const resolvedAvatarUrl = avatarUrl ?? prev.avatarUrl;
+
   const user = {
     userId,
-    username: username ?? prev.username ?? null,
+    ...(resolvedUsername && { username: resolvedUsername }),
+    ...(resolvedAvatarUrl && { avatarUrl: resolvedAvatarUrl }),
     displayName: displayName ?? prev.displayName ?? "",
-    avatarUrl: avatarUrl ?? prev.avatarUrl ?? null,
     colorScheme: colorScheme ?? prev.colorScheme ?? "default",
     font: font ?? prev.font ?? "default",
     points: prev.points ?? 0,

@@ -5,26 +5,32 @@ import 'package:trak/models/use_item_result.dart';
 import 'package:trak/models/user_profile.dart';
 import 'package:trak/repository/app_repository.dart';
 import '../database/app_database.dart';
-import 'health_repository.dart';
 
 class SqfliteAppRepository implements AppRepository {
-  final AppDatabase db = AppDatabase.instance;
-  final HealthRepository health = HealthRepository();
-
-  // Todo: Get user AUTH
-  final String currentUserId = "";
+  final AppDatabase _db = AppDatabase.instance;
   final _stepsController = StreamController<int>.broadcast();
+  final _leaderboardController =
+      StreamController<List<LeaderboardEntry>>.broadcast();
 
-  // Get Today's Date
+  // TODO: replace with real user ID once auth is wired up
+  final String currentUserId = "";
+
   String _today() => DateTime.now().toIso8601String().split('T').first;
 
-  // Update Widgets Through Stream Controller
   Future<void> _notify() async {
-    final steps = await db.getCurrentSteps(
-      userId: currentUserId,
-      date: _today(),
-    );
+    final steps = await _db.getCurrentSteps(date: _today());
     _stepsController.add(steps ?? 0);
+  }
+
+  Future<void> pushLeaderboard(List<LeaderboardEntry> entries) async {
+    await _db.replaceLeaderboard(entries);
+    await _db.updateSyncTime(AppDatabase.syncKeyLeaderboard);
+    _leaderboardController.add(entries);
+  }
+
+  void dispose() {
+    _stepsController.close();
+    _leaderboardController.close();
   }
 
   @override
@@ -41,15 +47,8 @@ class SqfliteAppRepository implements AppRepository {
 
   @override
   Future<void> putSteps(int stepCount) async {
-    await health.requestPermission();
-    final steps = await health.getTodaySteps();
-
-    await db.upsertSteps(
-      userId: currentUserId,
-      date: _today(),
-      stepCount: steps,
-    );
-
+    await _db.upsertSteps(date: _today(), stepCount: stepCount);
+    await _db.updateSyncTime(AppDatabase.syncKeySteps);
     await _notify();
   }
 
@@ -73,8 +72,10 @@ class SqfliteAppRepository implements AppRepository {
 
   @override
   Stream<List<LeaderboardEntry>> watchLeaderboard() {
-    // TODO: implement watchLeaderboard
-    throw UnimplementedError();
+    _db.getLeaderboard().then((entries) {
+      if (!_leaderboardController.isClosed) _leaderboardController.add(entries);
+    });
+    return _leaderboardController.stream;
   }
 
   @override
