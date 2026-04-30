@@ -11,16 +11,7 @@ import 'screens/home_screen.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _configureAmplify();
-  runApp(
-    ProviderScope(
-      overrides: [
-        repositoryProvider.overrideWith(
-          (ref) => ref.watch(sqfliteRepositoryProvider),
-        ),
-      ],
-      child: const TrakApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: TrakApp()));
 }
 
 Future<void> _configureAmplify() async {

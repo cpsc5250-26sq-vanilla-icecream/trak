@@ -1,17 +1,17 @@
 import 'package:amplify_flutter/amplify_flutter.dart' show safePrint;
 import '../repository/cloud_repository.dart';
 import '../repository/health_repository.dart';
-import '../repository/sqflite_app_repository.dart';
+import '../repository/sqf_repository.dart';
 
 class SyncService {
   final HealthRepository _health;
   final CloudRepository _cloud;
-  final SqfliteAppRepository _repo;
+  final SqfRepository _repo;
 
   SyncService({
     required HealthRepository health,
     required CloudRepository cloud,
-    required SqfliteAppRepository repo,
+    required SqfRepository repo,
   }) : _health = health,
        _cloud = cloud,
        _repo = repo;
