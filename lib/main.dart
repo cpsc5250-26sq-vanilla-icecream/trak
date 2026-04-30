@@ -6,7 +6,6 @@ import 'auth/amplify_config.dart';
 import 'auth/auth_notifier.dart';
 import 'auth/login_screen.dart';
 import 'providers/app_providers.dart';
-import 'repository/mock_app_repository.dart';
 import 'screens/home_screen.dart';
 
 Future<void> main() async {
@@ -14,7 +13,11 @@ Future<void> main() async {
   await _configureAmplify();
   runApp(
     ProviderScope(
-      overrides: [repositoryProvider.overrideWithValue(MockAppRepository())],
+      overrides: [
+        repositoryProvider.overrideWith(
+          (ref) => ref.watch(sqfliteRepositoryProvider),
+        ),
+      ],
       child: const TrakApp(),
     ),
   );
@@ -50,7 +53,19 @@ class _AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen(authStateProvider, (_, next) {
+    ref.listen(authStateProvider, (prev, next) {
+      final wasSignedIn = prev?.asData?.value != null;
+      final isSignedIn = next.asData?.value != null;
+
+      if (isSignedIn) {
+        final sync = ref.read(syncServiceProvider);
+        if (!wasSignedIn) {
+          sync.syncOnLogin();
+        } else {
+          sync.syncOnForeground();
+        }
+      }
+
       if (!next.isLoading) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {

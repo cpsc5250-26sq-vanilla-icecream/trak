@@ -161,18 +161,20 @@ class MockAppRepository implements AppRepository {
     ),
   ]);
 
-  static List<InventoryItem> _initialInventory() => const [
+  static List<InventoryItem> _initialInventory() => [
     InventoryItem(
       itemId: 'item-001',
       name: 'Double Points',
       description: 'Doubles your points for the next 30 minutes.',
       type: ItemType.powerup,
+      expiresAt: neverExpires,
     ),
     InventoryItem(
       itemId: 'item-002',
       name: 'Step Drain',
       description: "Removes 250 points from a friend's total.",
       type: ItemType.attack,
+      expiresAt: neverExpires,
     ),
   ];
 
