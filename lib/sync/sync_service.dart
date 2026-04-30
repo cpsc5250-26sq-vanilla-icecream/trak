@@ -12,9 +12,9 @@ class SyncService {
     required HealthRepository health,
     required CloudRepository cloud,
     required SqfliteAppRepository repo,
-  })  : _health = health,
-        _cloud = cloud,
-        _repo = repo;
+  }) : _health = health,
+       _cloud = cloud,
+       _repo = repo;
 
   // Full sync on first login — registers the user profile then refreshes data
   Future<void> syncOnLogin() async {

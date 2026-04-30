@@ -10,8 +10,7 @@ class CloudRepository {
       'https://v1mm0rec3f.execute-api.us-east-1.amazonaws.com/prod';
 
   Future<String> _getToken() async {
-    final session =
-        await Amplify.Auth.fetchAuthSession() as CognitoAuthSession;
+    final session = await Amplify.Auth.fetchAuthSession() as CognitoAuthSession;
     return session.userPoolTokensResult.value.idToken.raw;
   }
 
