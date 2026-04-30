@@ -7,9 +7,10 @@ import '../models/leaderboard_entry.dart';
 import '../models/inventory_item.dart';
 import '../models/user_profile.dart';
 import '../repository/app_repository.dart';
+import '../repository/caching_app_repository.dart';
 import '../repository/cloud_repository.dart';
 import '../repository/health_repository.dart';
-import '../repository/sqflite_app_repository.dart';
+import '../repository/sqf_repository.dart';
 import '../sync/sync_service.dart';
 
 final idTokenProvider = FutureProvider<String>((ref) async {
@@ -20,9 +21,7 @@ final idTokenProvider = FutureProvider<String>((ref) async {
   return session.userPoolTokensResult.value.idToken.raw;
 });
 
-final sqfliteRepositoryProvider = Provider<SqfliteAppRepository>(
-  (_) => SqfliteAppRepository(),
-);
+final sqfRepositoryProvider = Provider<SqfRepository>((_) => SqfRepository());
 
 final cloudRepositoryProvider = Provider<CloudRepository>(
   (_) => CloudRepository(),
@@ -32,13 +31,15 @@ final syncServiceProvider = Provider<SyncService>((ref) {
   return SyncService(
     health: HealthRepository(),
     cloud: ref.watch(cloudRepositoryProvider),
-    repo: ref.watch(sqfliteRepositoryProvider),
+    repo: ref.watch(sqfRepositoryProvider),
   );
 });
 
-// This is just the API, throws an error if not overridden
 final repositoryProvider = Provider<AppRepository>(
-  (_) => throw UnimplementedError('repositoryProvider must be overridden'),
+  (ref) => CachingAppRepository(
+    cloud: ref.watch(cloudRepositoryProvider),
+    cache: ref.watch(sqfRepositoryProvider),
+  ),
 );
 
 final leaderboardProvider = StreamProvider<List<LeaderboardEntry>>(

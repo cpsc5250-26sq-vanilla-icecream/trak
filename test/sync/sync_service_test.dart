@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trak/models/leaderboard_entry.dart';
 import 'package:trak/repository/cloud_repository.dart';
 import 'package:trak/repository/health_repository.dart';
-import 'package:trak/repository/sqflite_app_repository.dart';
+import 'package:trak/repository/sqf_repository.dart';
 import 'package:trak/sync/sync_service.dart';
 
 // ── fakes ──────────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ class _FakeCloud extends CloudRepository {
   Future<List<LeaderboardEntry>> fetchLeaderboard() async => leaderboard;
 }
 
-class _FakeRepo extends SqfliteAppRepository {
+class _FakeRepo extends SqfRepository {
   int? lastSteps;
   List<LeaderboardEntry>? lastLeaderboard;
 
