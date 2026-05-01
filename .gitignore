@@ -8,6 +8,7 @@
 *.pyc
 *.iml
 *.swp
+.DS_Store
 .buildlog/
 .metadata
 .history
