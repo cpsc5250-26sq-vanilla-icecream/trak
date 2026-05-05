@@ -1,5 +1,6 @@
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart' hide UserProfile;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_notifier.dart';
 import '../auth/jwt_utils.dart';
@@ -10,6 +11,7 @@ import '../repository/app_repository.dart';
 import '../repository/caching_app_repository.dart';
 import '../repository/cloud_repository.dart';
 import '../repository/health_repository.dart';
+import '../repository/mock_app_repository.dart';
 import '../repository/sqf_repository.dart';
 import '../sync/sync_service.dart';
 
@@ -35,12 +37,28 @@ final syncServiceProvider = Provider<SyncService>((ref) {
   );
 });
 
-final repositoryProvider = Provider<AppRepository>(
-  (ref) => CachingAppRepository(
+class UseMockNotifier extends Notifier<bool> {
+  @override
+  bool build() => true;
+
+  void set(bool value) => state = value;
+}
+
+final useMockProvider = NotifierProvider<UseMockNotifier, bool>(
+  UseMockNotifier.new,
+);
+
+final repositoryProvider = Provider<AppRepository>((ref) {
+  if (kDebugMode && ref.watch(useMockProvider)) {
+    final mock = MockAppRepository();
+    ref.onDispose(mock.dispose);
+    return mock;
+  }
+  return CachingAppRepository(
     cloud: ref.watch(cloudRepositoryProvider),
     cache: ref.watch(sqfRepositoryProvider),
-  ),
-);
+  );
+});
 
 final leaderboardProvider = StreamProvider<List<LeaderboardEntry>>(
   (ref) => ref.watch(repositoryProvider).watchLeaderboard(),

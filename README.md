@@ -33,7 +33,7 @@ flutter pub get
 flutter run
 ```
 
-The app currently runs against a mock backend (`MockAppRepository`). Real AWS integration is in progress as part of Sprint 1.
+The app defaults to a mock backend (`MockAppRepository`) in debug builds. A toggle in the app bar switches to live AWS. Real AWS integration is complete as of Sprint 1.
 
 ### Run tests
 
@@ -41,7 +41,7 @@ The app currently runs against a mock backend (`MockAppRepository`). Real AWS in
 flutter test --coverage
 ```
 
-Coverage requirements are enforced in CI and change each sprint (currently **30%** for Sprint 1). If you can get to **60%** on code you touch, that's ideal — we'll need to hit that threshold eventually anyway.
+Coverage requirements are enforced in CI and change each sprint (currently **45%** for Sprint 2). If you can get to **60%** on code you touch, that's ideal as we'll need to hit that threshold eventually anyway.
 
 ### Format and lint
 
@@ -64,7 +64,7 @@ AWS backend        ──┼──▶  AppRepository  ──▶  Riverpod provid
 SQLite local cache ──┘
 ```
 
-`AppRepository` is an abstract interface. `MockAppRepository` is used during development. The real `AwsAppRepository` (backed by Cognito + API Gateway) is being built in Sprint 1.
+`AppRepository` is an abstract interface. `CachingAppRepository` is the live implementation. It reads from SQLite cache and writes through to the AWS backend. `MockAppRepository` is available in debug builds via the in-app toggle for local development without a network connection.
 
 Providers:
 
@@ -87,8 +87,8 @@ The AWS backend is already deployed. See [`trak-sam/README.md`](trak-sam/README.
 
 | Sprint | Status | Goals |
 |---|---|---|
-| Sprint 1 | In progress | Step count from device, AWS setup (Cognito/API Gateway/DynamoDB), local cache, profile/sign-in, add friends by username |
-| Sprint 2 | Not started | Steps → points, leaderboard screen, SNS, QR friend add, push notification POC |
+| Sprint 1 | Complete | Step count from device, AWS setup (Cognito/API Gateway/DynamoDB), local cache, profile/sign-in, add friends by username |
+| Sprint 2 | In progress | Steps → points, leaderboard screen, nav layout, QR friend add, push notification POC, profile page, cloud inventory API |
 | Sprint 3 | Not started | UI settings (colors/fonts/backgrounds), powerups & attacks, full push notifications, historical leaderboards |
 
 ---
@@ -97,7 +97,7 @@ The AWS backend is already deployed. See [`trak-sam/README.md`](trak-sam/README.
 
 ### Branching
 
-- Branch off `dev` for all work — never push directly to `dev` or `main`
+- Branch off `dev` for all work. Never push directly to `dev` or `main`
 - Name branches `feature/xyz`, `fix/xyz`, or `chore/xyz`
 - Open a PR into `dev`; every PR needs **1 approval** before merging
 - `dev` → `main` happens once at the end of each sprint
@@ -136,3 +136,5 @@ GitHub Actions runs on every PR to `main` and `dev`:
 2. `flutter analyze`
 3. `flutter test --coverage` with minimum coverage gate (30% for Sprint 1)
 4. `flutter build apk --debug`
+
+The mock/live toggle is only visible in debug builds (`kDebugMode`). Release builds always use the live backend.
