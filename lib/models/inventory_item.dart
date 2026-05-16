@@ -17,6 +17,16 @@ class InventoryItem {
     required this.expiresAt,
   });
 
+  factory InventoryItem.fromCloud(Map<String, dynamic> map) {
+    return InventoryItem(
+      itemId: map['itemId'],
+      name: map['name'],
+      description: map['description'],
+      type: ItemType.values.firstWhere((e) => e.name == map['type']),
+      expiresAt: map['expiresAt'] as int,
+    );
+  }
+
   factory InventoryItem.fromMap(Map<String, dynamic> map) {
     return InventoryItem(
       itemId: map['item_id'],
