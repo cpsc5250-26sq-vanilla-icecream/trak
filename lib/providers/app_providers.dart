@@ -84,6 +84,17 @@ final needsUsernameProvider = FutureProvider<bool>((ref) async {
   return profile.username.isEmpty;
 });
 
+final currentUserPointsProvider = Provider<int>((ref) {
+  final userId = ref.watch(currentUserProvider).asData?.value.userId;
+  final entries = ref.watch(leaderboardProvider).asData?.value ?? [];
+  if (userId == null) return 0;
+  return entries
+          .where((e) => e.userId == userId)
+          .map((e) => e.totalPoints)
+          .firstOrNull ??
+      0;
+});
+
 final currentUserProvider = FutureProvider<UserProfile>((ref) async {
   final authUser = ref.watch(authStateProvider).asData?.value;
   if (authUser == null) throw Exception('Not signed in');
