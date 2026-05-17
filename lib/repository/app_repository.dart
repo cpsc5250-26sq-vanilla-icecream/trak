@@ -13,4 +13,5 @@ abstract class AppRepository {
   Future<UseItemResult> useItem(String itemId, String targetUserId);
   Future<void> addFriend(String targetUserId);
   Future<void> removeFriend(String targetUserId);
+  Future<List<dynamic>> getFriends();
 }

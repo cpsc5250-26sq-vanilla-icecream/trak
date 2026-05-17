@@ -62,4 +62,13 @@ class CloudRepository {
         .map((e) => LeaderboardEntry.fromCloud(e as Map<String, dynamic>))
         .toList();
   }
+
+  Future<List<dynamic>> fetchFriends() async {
+    final response = await http.get(
+      Uri.parse('$_base/friends'),
+      headers: await _headers(),
+    );
+    _check(response, 'fetchFriends');
+    return jsonDecode(response.body) as List<dynamic>;
+  }
 }

@@ -38,6 +38,12 @@ class _FakeRepository implements AppRepository {
       const UseItemResult.success();
   @override
   Future<void> removeFriend(String targetUserId) async {}
+
+  @override
+  Future<List<dynamic>> getFriends() {
+    // TODO: implement getFriends
+    throw UnimplementedError();
+  }
 }
 
 Widget _wrap(_FakeRepository repo) => ProviderScope(

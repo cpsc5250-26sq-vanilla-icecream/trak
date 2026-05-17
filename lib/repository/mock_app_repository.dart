@@ -195,4 +195,13 @@ class MockAppRepository implements AppRepository {
         )
         .toList();
   }
+
+  @override
+  Future<List<dynamic>> getFriends() async {
+    return [
+      {"friendId": "Alice"},
+      {"friendId": "Bob"},
+      {"friendId": "Charlie"},
+    ];
+  }
 }

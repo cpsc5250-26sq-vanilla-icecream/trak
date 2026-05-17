@@ -54,4 +54,9 @@ class CachingAppRepository implements AppRepository {
     // TODO: implement useItem
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<dynamic>> getFriends() {
+    return _cloud.fetchFriends();
+  }
 }
