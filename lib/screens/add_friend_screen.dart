@@ -114,7 +114,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-              const _FriendListCard(),
+              const _FriendList(),
             ],
           ),
         ),
@@ -123,8 +123,8 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   }
 }
 
-class _FriendListCard extends ConsumerWidget {
-  const _FriendListCard({super.key});
+class _FriendList extends ConsumerWidget {
+  const _FriendList();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
