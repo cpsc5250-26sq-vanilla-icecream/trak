@@ -40,9 +40,12 @@ class _FakeRepository implements AppRepository {
   Future<void> removeFriend(String targetUserId) async {}
 
   @override
-  Future<List<dynamic>> getFriends() {
-    // TODO: implement getFriends
-    throw UnimplementedError();
+  @override
+  Future<List<dynamic>> getFriends() async {
+    return [
+      {"friendId": "alice"},
+      {"friendId": "bob"},
+    ];
   }
 }
 
