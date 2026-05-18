@@ -21,6 +21,7 @@ Globals:
         USERS_TABLE: !Ref UsersTable
         STEPS_TABLE: !Ref StepsTable
         FRIENDS_TABLE: !Ref FriendsTable
+        INVENTORY_TABLE: !Ref InventoryTable
 
 Resources:
 
@@ -93,6 +94,22 @@ Resources:
         - AttributeName: userId
           KeyType: HASH
         - AttributeName: friendId
+          KeyType: RANGE
+
+  InventoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-inventory"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: itemId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: itemId
           KeyType: RANGE
 
   # ── Lambda Functions ──────────────────────────────────────────────────────────
@@ -197,6 +214,36 @@ Resources:
             Path: /friends
             Method: GET
 
+  InventoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/inventory/
+      Handler: app.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref InventoryTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Events:
+        GetInventory:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /inventory
+            Method: GET
+        UseItem:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /inventory/use
+            Method: POST
+        GrantItem:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /inventory
+            Method: POST
+
 Outputs:
   ApiUrl:
     Description: API Gateway base URL
@@ -207,4 +254,6 @@ Outputs:
     Value: !Ref StepsTable
   FriendsTableName:
     Value: !Ref FriendsTable
+  InventoryTableName:
+    Value: !Ref InventoryTable
 
