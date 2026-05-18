@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import '../models/friend.dart';
+import '../utils/points_utils.dart';
 import 'app_repository.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/inventory_item.dart';
@@ -29,6 +30,7 @@ class MockAppRepository implements AppRepository {
     // (updates every ~10 min), but this is fast enough to see
     // changes in real-time for testing.
     _tickTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      final pointsDelta = stepsToPoints(_steps + _tickPayload) - stepsToPoints(_steps);
       _steps += _tickPayload;
       _stepController.add(_steps);
 
@@ -39,7 +41,7 @@ class MockAppRepository implements AppRepository {
               userId: e.userId,
               username: e.username,
               avatarUrl: e.avatarUrl,
-              totalPoints: e.totalPoints + _tickPayload,
+              totalPoints: e.totalPoints + pointsDelta,
               rank: e.rank,
             );
           }
