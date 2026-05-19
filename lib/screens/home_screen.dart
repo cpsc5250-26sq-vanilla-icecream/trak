@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_notifier.dart';
 import '../providers/app_providers.dart';
+import '../widgets/leaderboard_widget.dart';
 import '../utils/points_utils.dart';
 import 'add_friend_screen.dart';
 
@@ -12,7 +13,6 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final steps = ref.watch(stepCountProvider);
-    final leaderboard = ref.watch(leaderboardProvider);
     final user = ref.watch(currentUserProvider);
     final confirmedPoints = ref.watch(currentUserPointsProvider);
 
@@ -77,23 +77,7 @@ class HomeScreen extends ConsumerWidget {
               error: (e, _) => Text('Error: $e'),
             ),
             const SizedBox(height: 32),
-            Text('Leaderboard', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            leaderboard.when(
-              data: (entries) => Column(
-                children: entries
-                    .map(
-                      (e) => ListTile(
-                        leading: Text('#${e.rank}'),
-                        title: Text(e.username),
-                        trailing: Text('${e.totalPoints} pts'),
-                      ),
-                    )
-                    .toList(),
-              ),
-              loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text('Error: $e'),
-            ),
+            const LeaderboardWidget(),
           ],
         ),
       ),
