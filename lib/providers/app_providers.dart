@@ -96,10 +96,6 @@ final currentUserPointsProvider = Provider<int>((ref) {
 });
 
 final currentUserProvider = FutureProvider<UserProfile>((ref) async {
-  if (kDebugMode && ref.watch(useMockProvider)) {
-    return ref.watch(repositoryProvider).getCurrentUser();
-  }
-
   final authUser = ref.watch(authStateProvider).asData?.value;
   if (authUser == null) throw Exception('Not signed in');
   return ref.watch(repositoryProvider).getCurrentUser();
