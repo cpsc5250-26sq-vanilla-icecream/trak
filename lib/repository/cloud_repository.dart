@@ -93,6 +93,7 @@ class CloudRepository {
         .map((e) => Friend.fromCloud(e as Map<String, dynamic>))
         .toList();
   }
+
   Future<List<InventoryItem>> fetchInventory() async {
     final response = await http.get(
       Uri.parse('$_base/inventory'),
