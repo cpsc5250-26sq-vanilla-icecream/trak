@@ -2,7 +2,11 @@ class Friend {
   final String userId;
   final String friendId;
   final String createdAt;
-  Friend({required this.userId, required this.friendId, required this.createdAt});
+  Friend({
+    required this.userId,
+    required this.friendId,
+    required this.createdAt,
+  });
 
   factory Friend.fromCloud(Map<String, dynamic> map) {
     return Friend(
