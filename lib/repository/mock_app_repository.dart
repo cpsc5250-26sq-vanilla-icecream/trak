@@ -30,7 +30,8 @@ class MockAppRepository implements AppRepository {
     // (updates every ~10 min), but this is fast enough to see
     // changes in real-time for testing.
     _tickTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      final pointsDelta = stepsToPoints(_steps + _tickPayload) - stepsToPoints(_steps);
+      final pointsDelta =
+          stepsToPoints(_steps + _tickPayload) - stepsToPoints(_steps);
       _steps += _tickPayload;
       _stepController.add(_steps);
 
