@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
-import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:amplify_flutter/amplify_flutter.dart' hide UserProfile;
 import 'package:http/http.dart' as http;
 import '../auth/jwt_utils.dart';
 import '../models/friend.dart';
+import '../models/inventory_item.dart';
 import '../models/leaderboard_entry.dart';
+import '../models/use_item_result.dart';
+import '../models/user_profile.dart';
 
 class CloudRepository {
   static const _base =
@@ -52,6 +55,21 @@ class CloudRepository {
     _check(response, 'submitSteps');
   }
 
+  Future<UserProfile> getCurrentUser() async {
+    final response = await http.get(
+      Uri.parse('$_base/users/me'),
+      headers: await _headers(),
+    );
+    _check(response, 'getCurrentUser');
+    final map = jsonDecode(response.body) as Map<String, dynamic>;
+    return UserProfile(
+      userId: map['userId'],
+      username: map['username'] ?? '',
+      displayName: map['displayName'] ?? '',
+      avatarUrl: map['avatarUrl'],
+    );
+  }
+
   Future<List<LeaderboardEntry>> fetchLeaderboard() async {
     final response = await http.get(
       Uri.parse('$_base/leaderboard'),
@@ -74,5 +92,47 @@ class CloudRepository {
     return data
         .map((e) => Friend.fromCloud(e as Map<String, dynamic>))
         .toList();
+  }
+  Future<List<InventoryItem>> fetchInventory() async {
+    final response = await http.get(
+      Uri.parse('$_base/inventory'),
+      headers: await _headers(),
+    );
+    _check(response, 'fetchInventory');
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => InventoryItem.fromCloud(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<UseItemResult> useItem(String itemId, String targetUserId) async {
+    final response = await http.post(
+      Uri.parse('$_base/inventory/use'),
+      headers: await _headers(),
+      body: jsonEncode({'itemId': itemId, 'targetUserId': targetUserId}),
+    );
+    if (response.statusCode == 404) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      return UseItemResult.failure(body['message'] as String);
+    }
+    _check(response, 'useItem');
+    return const UseItemResult.success();
+  }
+
+  Future<void> addFriend(String username) async {
+    final response = await http.post(
+      Uri.parse('$_base/friends'),
+      headers: await _headers(),
+      body: jsonEncode({'username': username}),
+    );
+    _check(response, 'addFriend');
+  }
+
+  Future<void> removeFriend(String friendId) async {
+    final response = await http.delete(
+      Uri.parse('$_base/friends/$friendId'),
+      headers: await _headers(),
+    );
+    _check(response, 'removeFriend');
   }
 }
