@@ -9,8 +9,7 @@ import 'router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  await FirebaseMessaging.instance.requestPermission();
+  await Firebase.initializeApp();await FirebaseMessaging.instance.requestPermission();
   final token = await FirebaseMessaging.instance.getToken();
   debugPrint('FCM TOKEN: $token');
   await _configureAmplify();
