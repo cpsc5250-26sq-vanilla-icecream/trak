@@ -40,9 +40,20 @@ class HomeScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             user.when(
-              data: (u) => Text(
-                'Hello, ${u.displayName}',
-                style: Theme.of(context).textTheme.titleLarge,
+              data: (u) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hello, ${u.displayName.isNotEmpty ? u.displayName : u.username}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  Text(
+                    '@${u.username}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ],
               ),
               loading: () => const SizedBox.shrink(),
               error: (e, _) => Text('Error: $e'),
