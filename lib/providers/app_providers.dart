@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_notifier.dart';
 import '../auth/jwt_utils.dart';
-import '../models/Friend.dart';
+import '../models/friend.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/inventory_item.dart';
 import '../models/user_profile.dart';

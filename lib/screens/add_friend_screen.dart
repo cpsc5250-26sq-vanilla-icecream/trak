@@ -144,8 +144,8 @@ class _FriendList extends ConsumerWidget {
           return Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-                "No friends yet :(",
-                style: Theme.of(context).textTheme.bodyLarge,
+              "No friends yet :(",
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
           );
         }
@@ -158,9 +158,7 @@ class _FriendList extends ConsumerWidget {
             final friend = friends[index];
 
             return ListTile(
-              leading: const CircleAvatar(
-                child: Icon(Icons.person_2_rounded),
-              ),
+              leading: const CircleAvatar(child: Icon(Icons.person_2_rounded)),
               title: Text(friend.friendId),
             );
           },

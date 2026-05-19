@@ -1,4 +1,4 @@
-import '../models/Friend.dart';
+import '../models/friend.dart';
 import '../models/inventory_item.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/use_item_result.dart';
