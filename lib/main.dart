@@ -1,5 +1,7 @@
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth/amplify_config.dart';
@@ -10,6 +12,9 @@ import 'screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();await FirebaseMessaging.instance.requestPermission();
+  final token = await FirebaseMessaging.instance.getToken();
+  debugPrint('FCM TOKEN: $token');
   await _configureAmplify();
   runApp(const ProviderScope(child: TrakApp()));
 }
