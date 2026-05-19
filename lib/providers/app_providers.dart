@@ -3,7 +3,6 @@ import 'package:amplify_flutter/amplify_flutter.dart' hide UserProfile;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_notifier.dart';
-import '../auth/jwt_utils.dart';
 import '../models/friend.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/inventory_item.dart';
@@ -77,17 +76,16 @@ final stepCountProvider = StreamProvider<int>(
   (ref) => ref.watch(repositoryProvider).watchStepCount(),
 );
 
+final needsUsernameProvider = FutureProvider<bool>((ref) async {
+  final authUser = ref.watch(authStateProvider).asData?.value;
+  if (authUser == null) return false;
+  if (kDebugMode && ref.watch(useMockProvider)) return false;
+  final profile = await ref.read(cloudRepositoryProvider).getCurrentUser();
+  return profile.username.isEmpty;
+});
+
 final currentUserProvider = FutureProvider<UserProfile>((ref) async {
   final authUser = ref.watch(authStateProvider).asData?.value;
   if (authUser == null) throw Exception('Not signed in');
-
-  final raw = await ref.watch(idTokenProvider.future);
-  final claims = JwtUtils.decodeClaims(raw);
-
-  return UserProfile(
-    userId: authUser.userId,
-    username: authUser.username,
-    displayName: claims['name'] as String? ?? authUser.username,
-    avatarUrl: claims['picture'] as String?,
-  );
+  return ref.watch(repositoryProvider).getCurrentUser();
 });

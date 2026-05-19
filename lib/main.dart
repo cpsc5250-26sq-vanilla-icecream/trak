@@ -7,6 +7,7 @@ import 'auth/auth_notifier.dart';
 import 'auth/login_screen.dart';
 import 'providers/app_providers.dart';
 import 'screens/home_screen.dart';
+import 'screens/username_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +45,11 @@ class _AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(needsUsernameProvider, (prev, next) {
+      final justSetUsername = prev?.asData?.value == true && next.asData?.value == false;
+      if (justSetUsername) ref.read(syncServiceProvider).syncOnForeground();
+    });
+
     ref.listen(authStateProvider, (prev, next) {
       final wasSignedIn = prev?.asData?.value != null;
       final isSignedIn = next.asData?.value != null;
@@ -72,7 +78,28 @@ class _AuthGate extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => const LoginScreen(),
-      data: (user) => user != null ? const HomeScreen() : const LoginScreen(),
+      data: (user) {
+        if (user == null) return const LoginScreen();
+        return ref.watch(needsUsernameProvider).when(
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (e, _) => Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Unable to load profile'),
+                  TextButton(
+                    onPressed: () => ref.invalidate(needsUsernameProvider),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          data: (needs) => needs ? const UsernameScreen() : const HomeScreen(),
+        );
+      },
     );
   }
 }
