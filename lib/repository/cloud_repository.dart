@@ -9,6 +9,14 @@ import '../models/leaderboard_entry.dart';
 import '../models/use_item_result.dart';
 import '../models/user_profile.dart';
 
+class UserNotFoundException implements Exception {
+  const UserNotFoundException();
+}
+
+class UsernameAlreadyTakenException implements Exception {
+  const UsernameAlreadyTakenException();
+}
+
 class CloudRepository {
   static const _base =
       'https://v1mm0rec3f.execute-api.us-east-1.amazonaws.com/prod';
@@ -60,6 +68,7 @@ class CloudRepository {
       Uri.parse('$_base/users/me'),
       headers: await _headers(),
     );
+    if (response.statusCode == 404) throw const UserNotFoundException();
     _check(response, 'getCurrentUser');
     final map = jsonDecode(response.body) as Map<String, dynamic>;
     return UserProfile(
@@ -68,6 +77,16 @@ class CloudRepository {
       displayName: map['displayName'] ?? '',
       avatarUrl: map['avatarUrl'],
     );
+  }
+
+  Future<void> setUsername(String username) async {
+    final response = await http.post(
+      Uri.parse('$_base/users'),
+      headers: await _headers(),
+      body: jsonEncode({'username': username}),
+    );
+    if (response.statusCode == 409) throw const UsernameAlreadyTakenException();
+    _check(response, 'setUsername');
   }
 
   Future<List<LeaderboardEntry>> fetchLeaderboard() async {

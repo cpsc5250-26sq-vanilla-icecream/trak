@@ -28,9 +28,8 @@ class CachingAppRepository implements AppRepository {
   Stream<int> watchStepCount() => _cache.watchStepCount();
 
   @override
-  Future<UserProfile> getCurrentUser() {
-    throw UnimplementedError();
-  }
+  // TODO: cache profile in a user_profile SQLite table with write-through on syncOnLogin
+  Future<UserProfile> getCurrentUser() => _cloud.getCurrentUser();
 
   @override
   Future<void> putSteps(int stepCount) async {
