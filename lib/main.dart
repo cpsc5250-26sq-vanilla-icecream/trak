@@ -12,7 +12,8 @@ import 'screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();await FirebaseMessaging.instance.requestPermission();
+  await Firebase.initializeApp();
+  await FirebaseMessaging.instance.requestPermission();
   final token = await FirebaseMessaging.instance.getToken();
   debugPrint('FCM TOKEN: $token');
   await _configureAmplify();
