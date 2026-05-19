@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trak/models/friend.dart';
 import 'package:trak/models/inventory_item.dart';
 import 'package:trak/models/leaderboard_entry.dart';
 import 'package:trak/models/use_item_result.dart';
@@ -38,6 +39,27 @@ class _FakeRepository implements AppRepository {
       const UseItemResult.success();
   @override
   Future<void> removeFriend(String targetUserId) async {}
+
+  @override
+  Future<List<Friend>> getFriends() async {
+    return [
+      Friend(
+        userId: 'user-000',
+        friendId: 'alice123',
+        createdAt: '2026-05-18T12:00:00Z',
+      ),
+      Friend(
+        userId: 'user-002',
+        friendId: 'alex_walks',
+        createdAt: '2026-05-18T12:00:00Z',
+      ),
+      Friend(
+        userId: 'user-003',
+        friendId: 'steph_steps',
+        createdAt: '2026-05-18T12:00:00Z',
+      ),
+    ];
+  }
 }
 
 Widget _wrap(_FakeRepository repo) => ProviderScope(

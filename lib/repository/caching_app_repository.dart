@@ -1,3 +1,4 @@
+import '../models/friend.dart';
 import '../models/inventory_item.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/use_item_result.dart';
@@ -53,5 +54,14 @@ class CachingAppRepository implements AppRepository {
   Future<UseItemResult> useItem(String itemId, String targetUserId) {
     // TODO: implement useItem
     throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Friend>> getFriends() {
+    // TODO: Implement write-through caching.
+    // 1. Read friends from local cache (SqfRepository).
+    // 2. Sync with cloud in background.
+    // 3. Persist cloud response back into cache.
+    return _cloud.fetchFriends();
   }
 }

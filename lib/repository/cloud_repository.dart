@@ -3,6 +3,7 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart' hide UserProfile;
 import 'package:http/http.dart' as http;
 import '../auth/jwt_utils.dart';
+import '../models/friend.dart';
 import '../models/inventory_item.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/use_item_result.dart';
@@ -78,6 +79,18 @@ class CloudRepository {
     final list = jsonDecode(response.body) as List<dynamic>;
     return list
         .map((e) => LeaderboardEntry.fromCloud(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<Friend>> fetchFriends() async {
+    final response = await http.get(
+      Uri.parse('$_base/friends'),
+      headers: await _headers(),
+    );
+    _check(response, 'fetchFriends');
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => Friend.fromCloud(e as Map<String, dynamic>))
         .toList();
   }
 

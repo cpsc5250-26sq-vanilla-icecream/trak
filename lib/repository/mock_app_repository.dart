@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import '../models/friend.dart';
 import 'app_repository.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/inventory_item.dart';
@@ -194,5 +195,26 @@ class MockAppRepository implements AppRepository {
           ),
         )
         .toList();
+  }
+
+  @override
+  Future<List<Friend>> getFriends() async {
+    return [
+      Friend(
+        userId: 'user-000',
+        friendId: 'alice123',
+        createdAt: '2026-05-18T12:00:00Z',
+      ),
+      Friend(
+        userId: 'user-002',
+        friendId: 'alex_walks',
+        createdAt: '2026-05-18T12:00:00Z',
+      ),
+      Friend(
+        userId: 'user-003',
+        friendId: 'steph_steps',
+        createdAt: '2026-05-18T12:00:00Z',
+      ),
+    ];
   }
 }
