@@ -46,7 +46,8 @@ class _AuthGate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(needsUsernameProvider, (prev, next) {
-      final justSetUsername = prev?.asData?.value == true && next.asData?.value == false;
+      final justSetUsername =
+          prev?.asData?.value == true && next.asData?.value == false;
       if (justSetUsername) ref.read(syncServiceProvider).syncOnForeground();
     });
 
@@ -80,25 +81,29 @@ class _AuthGate extends ConsumerWidget {
       error: (e, _) => const LoginScreen(),
       data: (user) {
         if (user == null) return const LoginScreen();
-        return ref.watch(needsUsernameProvider).when(
-          loading: () =>
-              const Scaffold(body: Center(child: CircularProgressIndicator())),
-          error: (e, _) => Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Unable to load profile'),
-                  TextButton(
-                    onPressed: () => ref.invalidate(needsUsernameProvider),
-                    child: const Text('Retry'),
-                  ),
-                ],
+        return ref
+            .watch(needsUsernameProvider)
+            .when(
+              loading: () => const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
               ),
-            ),
-          ),
-          data: (needs) => needs ? const UsernameScreen() : const HomeScreen(),
-        );
+              error: (e, _) => Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Unable to load profile'),
+                      TextButton(
+                        onPressed: () => ref.invalidate(needsUsernameProvider),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              data: (needs) =>
+                  needs ? const UsernameScreen() : const HomeScreen(),
+            );
       },
     );
   }

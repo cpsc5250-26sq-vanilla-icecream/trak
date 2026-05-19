@@ -39,8 +39,9 @@ void main() {
       expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
     });
 
-    testWidgets('empty submit shows required error without calling repo',
-        (tester) async {
+    testWidgets('empty submit shows required error without calling repo', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(cloud));
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
       await tester.pump();
@@ -48,7 +49,9 @@ void main() {
       expect(cloud.lastUsername, isNull);
     });
 
-    testWidgets('username under 3 characters shows format error', (tester) async {
+    testWidgets('username under 3 characters shows format error', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(cloud));
       await tester.enterText(find.byType(TextFormField), 'ab');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
@@ -60,8 +63,9 @@ void main() {
       expect(cloud.lastUsername, isNull);
     });
 
-    testWidgets('username with invalid characters shows format error',
-        (tester) async {
+    testWidgets('username with invalid characters shows format error', (
+      tester,
+    ) async {
       await tester.pumpWidget(_wrap(cloud));
       await tester.enterText(find.byType(TextFormField), 'bad name!');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
