@@ -3,6 +3,7 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../auth/jwt_utils.dart';
+import '../models/Friend.dart';
 import '../models/leaderboard_entry.dart';
 
 class CloudRepository {
@@ -63,12 +64,15 @@ class CloudRepository {
         .toList();
   }
 
-  Future<List<dynamic>> fetchFriends() async {
+  Future<List<Friend>> fetchFriends() async {
     final response = await http.get(
       Uri.parse('$_base/friends'),
       headers: await _headers(),
     );
     _check(response, 'fetchFriends');
-    return jsonDecode(response.body) as List<dynamic>;
+    final data = jsonDecode(response.body) as List<dynamic>;
+    return data
+        .map((e) => Friend.fromCloud(e as Map<String, dynamic>))
+        .toList();
   }
 }

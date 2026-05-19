@@ -1,3 +1,4 @@
+import '../models/Friend.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/inventory_item.dart';
 import '../models/use_item_result.dart';
@@ -13,5 +14,5 @@ abstract class AppRepository {
   Future<UseItemResult> useItem(String itemId, String targetUserId);
   Future<void> addFriend(String targetUserId);
   Future<void> removeFriend(String targetUserId);
-  Future<List<dynamic>> getFriends();
+  Future<List<Friend>> getFriends();
 }
