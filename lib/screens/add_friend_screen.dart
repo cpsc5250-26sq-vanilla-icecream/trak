@@ -125,43 +125,43 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
 class _FriendList extends ConsumerWidget {
   const _FriendList();
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final repository = ref.read(repositoryProvider);
-    return FutureBuilder<List<dynamic>>(
-      future: repository.getFriends(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
+    final friendsAsync = ref.watch(friendsProvider);
+    return friendsAsync.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (error, _) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(error.toString()),
+      ),
+      data: (friends) {
+        if (friends.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+                "No friends yet :(",
+                style: Theme.of(context).textTheme.bodyLarge,
             ),
           );
         }
-        if (snapshot.hasError) {
-          return Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(snapshot.error.toString()),
-          );
-        }
 
-        final friends = snapshot.data ?? [];
-        if (friends.isEmpty) {
-          return Padding(
-            padding: EdgeInsets.all(24),
-            child: Text("No friends yet :("),
-          );
-        }
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: friends.length,
           itemBuilder: (context, index) {
+            final friend = friends[index];
+
             return ListTile(
-              leading: CircleAvatar(child: Icon(Icons.person_2_rounded)),
-              title: Text(friends[index]["friendId"] ?? "Unknown"),
+              leading: const CircleAvatar(
+                child: Icon(Icons.person_2_rounded),
+              ),
+              title: Text(friend.friendId),
             );
           },
         );
