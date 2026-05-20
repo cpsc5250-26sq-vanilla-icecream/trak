@@ -19,10 +19,12 @@ class LeaderboardWidget extends ConsumerWidget {
         leaderboard.when(
           data: (entries) => Column(
             children: entries
-                .map((e) => _LeaderboardRow(
-                      entry: e,
-                      isCurrentUser: e.userId == currentUserId,
-                    ))
+                .map(
+                  (e) => _LeaderboardRow(
+                    entry: e,
+                    isCurrentUser: e.userId == currentUserId,
+                  ),
+                )
                 .toList(),
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -44,11 +46,11 @@ class _LeaderboardRow extends StatelessWidget {
   static const _bronze = Color(0xFFCD7F32);
 
   Color _rankColor(int rank) => switch (rank) {
-        1 => _gold,
-        2 => _silver,
-        3 => _bronze,
-        _ => const Color(0xFFE0E0E0),
-      };
+    1 => _gold,
+    2 => _silver,
+    3 => _bronze,
+    _ => const Color(0xFFE0E0E0),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -60,12 +62,12 @@ class _LeaderboardRow extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
         color: isCurrentUser
-            ? theme.colorScheme.primaryContainer.withOpacity(0.35)
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
             : theme.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isCurrentUser
-              ? theme.colorScheme.primary.withOpacity(0.4)
+              ? theme.colorScheme.primary.withValues(alpha: 0.4)
               : Colors.transparent,
         ),
       ),
@@ -89,8 +91,9 @@ class _LeaderboardRow extends StatelessWidget {
               child: Text(
                 entry.username,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight:
-                      isCurrentUser ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isCurrentUser
+                      ? FontWeight.bold
+                      : FontWeight.normal,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -98,8 +101,7 @@ class _LeaderboardRow extends StatelessWidget {
             if (isCurrentUser) ...[
               const SizedBox(width: 6),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary,
                   borderRadius: BorderRadius.circular(8),
