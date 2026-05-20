@@ -48,7 +48,10 @@ class _AuthGate extends ConsumerWidget {
     ref.listen(needsUsernameProvider, (prev, next) {
       final justSetUsername =
           prev?.asData?.value == true && next.asData?.value == false;
-      if (justSetUsername) ref.read(syncServiceProvider).syncOnForeground();
+      if (justSetUsername) {
+        ref.invalidate(currentUserProvider);
+        ref.read(syncServiceProvider).syncOnForeground();
+      }
     });
 
     ref.listen(authStateProvider, (prev, next) {
