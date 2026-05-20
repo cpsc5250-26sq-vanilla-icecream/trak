@@ -38,13 +38,14 @@ class CachingAppRepository implements AppRepository {
   }
 
   @override
-  Future<void> addFriend(String targetUserId) => _cloud.addFriend(targetUserId);
+  Future<void> addFriend(String username) async {
+    await _cloud.addFriend(username);
+    final entries = await _cloud.fetchLeaderboard();
+    await _cache.pushLeaderboard(entries);
+  }
 
   @override
-  Future<void> removeFriend(String targetUserId) {
-    // TODO: implement removeFriend
-    throw UnimplementedError();
-  }
+  Future<void> removeFriend(String friendId) => _cloud.removeFriend(friendId);
 
   @override
   Future<UseItemResult> useItem(String itemId, String targetUserId) {

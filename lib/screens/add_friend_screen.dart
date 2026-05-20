@@ -33,8 +33,8 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
     try {
       await ref.read(repositoryProvider).addFriend(username);
-      ref.invalidate(friendsProvider);
       if (mounted) {
+        ref.invalidate(friendsProvider);
         setState(() {
           _successName = username;
           _loading = false;
