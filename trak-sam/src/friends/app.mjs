@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, DeleteCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, BatchGetCommand, DeleteCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const USERS_TABLE = process.env.USERS_TABLE;
@@ -52,7 +52,33 @@ async function listFriends(event) {
     KeyConditionExpression: "userId = :uid",
     ExpressionAttributeValues: { ":uid": userId },
   }));
-  return res(200, result.Items ?? []);
+
+  const friends = result.Items ?? [];
+  if (friends.length === 0) return res(200, []);
+
+  const batchResult = await ddb.send(new BatchGetCommand({
+    RequestItems: {
+      [USERS_TABLE]: {
+        Keys: friends.map((f) => ({ userId: f.friendId })),
+        ProjectionExpression: "userId, username, displayName",
+      },
+    },
+  }));
+
+  const userMap = Object.fromEntries(
+    (batchResult.Responses?.[USERS_TABLE] ?? []).map((u) => [u.userId, u])
+  );
+
+  const enriched = friends.map((f) => {
+    const user = userMap[f.friendId];
+    return {
+      ...f,
+      username: user?.username ?? null,
+      displayName: user?.displayName ?? null,
+    };
+  });
+
+  return res(200, enriched);
 }
 
 export const handler = async (event) => {

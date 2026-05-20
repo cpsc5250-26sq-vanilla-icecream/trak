@@ -33,6 +33,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
     try {
       await ref.read(repositoryProvider).addFriend(username);
+      ref.invalidate(friendsProvider);
       if (mounted) {
         setState(() {
           _successName = username;
@@ -159,7 +160,12 @@ class _FriendList extends ConsumerWidget {
 
             return ListTile(
               leading: const CircleAvatar(child: Icon(Icons.person_2_rounded)),
-              title: Text(friend.friendId),
+              title: Text(
+                friend.displayName ?? friend.username ?? friend.friendId,
+              ),
+              subtitle: friend.username != null
+                  ? Text('@${friend.username}')
+                  : null,
             );
           },
         );
