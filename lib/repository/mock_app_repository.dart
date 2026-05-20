@@ -206,16 +206,22 @@ class MockAppRepository implements AppRepository {
       Friend(
         userId: 'user-000',
         friendId: 'alice123',
+        username: 'alice123',
+        displayName: 'Alice',
         createdAt: '2026-05-18T12:00:00Z',
       ),
       Friend(
         userId: 'user-002',
         friendId: 'alex_walks',
+        username: 'alex_walks',
+        displayName: 'Alex',
         createdAt: '2026-05-18T12:00:00Z',
       ),
       Friend(
         userId: 'user-003',
         friendId: 'steph_steps',
+        username: 'steph_steps',
+        displayName: 'Steph',
         createdAt: '2026-05-18T12:00:00Z',
       ),
     ];
