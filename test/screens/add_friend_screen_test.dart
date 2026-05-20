@@ -15,9 +15,9 @@ class _FakeRepository implements AppRepository {
   String? lastAddedFriend;
 
   @override
-  Future<void> addFriend(String targetUserId) async {
+  Future<void> addFriend(String username) async {
     if (shouldThrow) throw Exception('User not found');
-    lastAddedFriend = targetUserId;
+    lastAddedFriend = username;
   }
 
   @override
@@ -38,7 +38,7 @@ class _FakeRepository implements AppRepository {
   Future<UseItemResult> useItem(String itemId, String targetUserId) async =>
       const UseItemResult.success();
   @override
-  Future<void> removeFriend(String targetUserId) async {}
+  Future<void> removeFriend(String friendId) async {}
 
   @override
   Future<List<Friend>> getFriends() async {

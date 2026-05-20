@@ -12,7 +12,7 @@ abstract class AppRepository {
 
   Future<void> putSteps(int stepCount);
   Future<UseItemResult> useItem(String itemId, String targetUserId);
-  Future<void> addFriend(String targetUserId);
-  Future<void> removeFriend(String targetUserId);
+  Future<void> addFriend(String username);
+  Future<void> removeFriend(String friendId);
   Future<List<Friend>> getFriends();
 }
