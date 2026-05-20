@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_notifier.dart';
 import '../providers/app_providers.dart';
+import '../utils/points_utils.dart';
 import 'add_friend_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -13,6 +14,7 @@ class HomeScreen extends ConsumerWidget {
     final steps = ref.watch(stepCountProvider);
     final leaderboard = ref.watch(leaderboardProvider);
     final user = ref.watch(currentUserProvider);
+    final confirmedPoints = ref.watch(currentUserPointsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -61,8 +63,16 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             Text('Steps today', style: Theme.of(context).textTheme.labelLarge),
             steps.when(
-              data: (s) =>
+              data: (s) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text('$s', style: Theme.of(context).textTheme.displayMedium),
+                  Text(
+                    '≈ ${stepsToPoints(s)} pts today  ·  $confirmedPoints pts total',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
               loading: () => const CircularProgressIndicator(),
               error: (e, _) => Text('Error: $e'),
             ),
