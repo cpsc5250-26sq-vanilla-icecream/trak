@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/app_providers.dart';
+import 'qr_friend_sheet.dart';
 
 class AddFriendScreen extends ConsumerStatefulWidget {
   const AddFriendScreen({super.key});
@@ -58,12 +59,18 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
         title: const Text('Add Friend'),
         actions: [
           IconButton(
-            // TODO: QR IMPLEMENTATION
             onPressed: () {
-              // TODO: Open QR + Camera to open QR SCANNER
-              // CAMERA SCANNER MAY REQUIRE PERMISSIONS TO BE ACTIVATED
+              showModalBottomSheet(
+                context: context,
+                builder: (_) => QrFriendSheet(
+                  onScanned: (username) {
+                    _controller.text = username;
+                    _submit();
+                  },
+                ),
+              );
             },
-            icon: Icon(Icons.qr_code_rounded),
+            icon: const Icon(Icons.qr_code_rounded),
             iconSize: 32,
           ),
         ],
