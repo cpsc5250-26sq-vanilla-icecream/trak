@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../auth/auth_notifier.dart';
 import '../providers/app_providers.dart';
-import '../router/app_router.dart';
 import '../widgets/leaderboard_widget.dart';
 import '../utils/points_utils.dart';
+import 'add_friend_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -25,7 +24,10 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.person_add),
             tooltip: 'Add friend',
-            onPressed: () => context.push(AppRoute.addFriend),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddFriendScreen()),
+            ),
           ),
         ],
       ),

@@ -1,11 +1,20 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  debugPrint(
+    'Background message received: '
+    '${message.notification?.title}',
+  );
+}
+
 class PushNotificationService {
-  static final FirebaseMessaging _messaging =
-      FirebaseMessaging.instance;
+  static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   static Future<void> initialize() async {
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
     await _requestPermission();
     await _printToken();
     _listenForeground();
@@ -14,9 +23,7 @@ class PushNotificationService {
   static Future<void> _requestPermission() async {
     final settings = await _messaging.requestPermission();
 
-    debugPrint(
-      'Permission: ${settings.authorizationStatus}',
-    );
+    debugPrint('Permission: ${settings.authorizationStatus}');
   }
 
   static Future<void> _printToken() async {
@@ -29,7 +36,7 @@ class PushNotificationService {
     FirebaseMessaging.onMessage.listen((message) {
       debugPrint(
         'Foreground message: '
-            '${message.notification?.title}',
+        '${message.notification?.title}',
       );
     });
   }
