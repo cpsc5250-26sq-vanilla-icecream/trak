@@ -43,6 +43,10 @@ flutter test --coverage
 
 Coverage requirements are enforced in CI and change each sprint (currently **45%** for Sprint 2). If you can get to **60%** on code you touch, that's ideal as we'll need to hit that threshold eventually anyway.
 
+### QR code test assets (Milestone 2)
+
+Some pre-generated QR codes live in `test/qr-codes/` for manual testing of the QR friend-add flow. Each filename (without extension) is the username, the same value you would enter when adding a friend by username. Display a code on a second device (or just open the PNG) and scan it from the app to exercise the friend-add screen end-to-end.
+
 ### Format and lint
 
 ```bash
