@@ -61,12 +61,18 @@ class HomeScreen extends ConsumerWidget {
                 error: (e, _) => Text('Error: $e'),
               ),
               const SizedBox(height: 24),
-              Text('Steps today', style: Theme.of(context).textTheme.labelLarge),
+              Text(
+                'Steps today',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
               steps.when(
                 data: (s) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('$s', style: Theme.of(context).textTheme.displayMedium),
+                    Text(
+                      '$s',
+                      style: Theme.of(context).textTheme.displayMedium,
+                    ),
                     Text(
                       '≈ ${stepsToPoints(s)} pts today  ·  $confirmedPoints pts total',
                       style: Theme.of(context).textTheme.bodyMedium,
