@@ -80,7 +80,7 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 32),
             const LeaderboardWidget(),
             const SizedBox(height: 32),
-            const _TestNotification()
+            const _TestNotification(),
           ],
         ),
       ),
@@ -113,9 +113,11 @@ class _TestNotification extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(onPressed: () async {
-      await LocalNotificationService.showNotification();
-    }, child: Text("Push Test Notification"));
+    return ElevatedButton(
+      onPressed: () async {
+        await LocalNotificationService.showNotification();
+      },
+      child: Text("Push Test Notification"),
+    );
   }
 }
-
