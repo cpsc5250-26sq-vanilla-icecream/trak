@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trak/service/local_notification_service.dart';
 import '../auth/auth_notifier.dart';
 import '../providers/app_providers.dart';
 import '../widgets/leaderboard_widget.dart';
@@ -78,6 +79,8 @@ class HomeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 32),
             const LeaderboardWidget(),
+            const SizedBox(height: 32),
+            const _TestNotification()
           ],
         ),
       ),
@@ -104,3 +107,15 @@ class _MockToggle extends ConsumerWidget {
     );
   }
 }
+
+class _TestNotification extends StatelessWidget {
+  const _TestNotification();
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(onPressed: () async {
+      await LocalNotificationService.showNotification();
+    }, child: Text("Push Test Notification"));
+  }
+}
+
