@@ -21,13 +21,20 @@ class CloudRepository {
   static const _base =
       'https://v1mm0rec3f.execute-api.us-east-1.amazonaws.com/prod';
 
-  Future<String> _getToken() async {
+  final http.Client _client;
+  final Future<String> Function() _tokenGetter;
+
+  CloudRepository({http.Client? client, Future<String> Function()? tokenGetter})
+    : _client = client ?? http.Client(),
+      _tokenGetter = tokenGetter ?? _amplifyToken;
+
+  static Future<String> _amplifyToken() async {
     final session = await Amplify.Auth.fetchAuthSession() as CognitoAuthSession;
     return session.userPoolTokensResult.value.idToken.raw;
   }
 
   Future<Map<String, String>> _headers() async => {
-    'Authorization': 'Bearer ${await _getToken()}',
+    'Authorization': 'Bearer ${await _tokenGetter()}',
     'Content-Type': 'application/json',
   };
 
@@ -43,7 +50,7 @@ class CloudRepository {
       headers['Authorization']!.substring('Bearer '.length),
     );
 
-    final response = await http.post(
+    final response = await _client.post(
       Uri.parse('$_base/users'),
       headers: headers,
       body: jsonEncode({
@@ -55,7 +62,7 @@ class CloudRepository {
   }
 
   Future<void> submitSteps(int stepCount) async {
-    final response = await http.post(
+    final response = await _client.post(
       Uri.parse('$_base/steps'),
       headers: await _headers(),
       body: jsonEncode({'stepCount': stepCount}),
@@ -64,7 +71,7 @@ class CloudRepository {
   }
 
   Future<UserProfile> getCurrentUser() async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$_base/users/me'),
       headers: await _headers(),
     );
@@ -80,7 +87,7 @@ class CloudRepository {
   }
 
   Future<void> setUsername(String username) async {
-    final response = await http.post(
+    final response = await _client.post(
       Uri.parse('$_base/users'),
       headers: await _headers(),
       body: jsonEncode({'username': username}),
@@ -90,7 +97,7 @@ class CloudRepository {
   }
 
   Future<List<LeaderboardEntry>> fetchLeaderboard() async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$_base/leaderboard'),
       headers: await _headers(),
     );
@@ -102,7 +109,7 @@ class CloudRepository {
   }
 
   Future<List<Friend>> fetchFriends() async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$_base/friends'),
       headers: await _headers(),
     );
@@ -114,7 +121,7 @@ class CloudRepository {
   }
 
   Future<List<InventoryItem>> fetchInventory() async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$_base/inventory'),
       headers: await _headers(),
     );
@@ -126,7 +133,7 @@ class CloudRepository {
   }
 
   Future<UseItemResult> useItem(String itemId, String targetUserId) async {
-    final response = await http.post(
+    final response = await _client.post(
       Uri.parse('$_base/inventory/use'),
       headers: await _headers(),
       body: jsonEncode({'itemId': itemId, 'targetUserId': targetUserId}),
@@ -140,7 +147,7 @@ class CloudRepository {
   }
 
   Future<void> addFriend(String username) async {
-    final response = await http.post(
+    final response = await _client.post(
       Uri.parse('$_base/friends'),
       headers: await _headers(),
       body: jsonEncode({'username': username}),
@@ -149,7 +156,7 @@ class CloudRepository {
   }
 
   Future<void> removeFriend(String friendId) async {
-    final response = await http.delete(
+    final response = await _client.delete(
       Uri.parse('$_base/friends/$friendId'),
       headers: await _headers(),
     );
