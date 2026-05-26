@@ -4,13 +4,26 @@ import 'package:trak/models/inventory_item.dart';
 import 'package:trak/models/leaderboard_entry.dart';
 
 class AppDatabase {
-  static final AppDatabase instance = AppDatabase._init();
-  static Database? _db;
+  static final AppDatabase instance = AppDatabase._();
+  Database? _db;
 
   static const syncKeySteps = 'steps';
   static const syncKeyLeaderboard = 'leaderboard';
 
-  AppDatabase._init();
+  AppDatabase._();
+
+  AppDatabase.fromDatabase(Database db) : _db = db;
+
+  static Future<AppDatabase> openInMemory() async {
+    final db = await openDatabase(
+      inMemoryDatabasePath,
+      version: 1,
+      onCreate: _createDB,
+    );
+    return AppDatabase.fromDatabase(db);
+  }
+
+  Future<void> close() async => (await database).close();
 
   Future<Database> get database async {
     if (_db != null) return _db!;
@@ -25,7 +38,7 @@ class AppDatabase {
     return openDatabase(path, version: 1, onCreate: _createDB);
   }
 
-  Future _createDB(Database db, int version) async {
+  static Future<void> _createDB(Database db, int version) async {
     await db.execute('''
     CREATE TABLE leaderboard_cache (
       user_id TEXT PRIMARY KEY,

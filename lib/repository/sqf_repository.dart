@@ -4,7 +4,9 @@ import 'package:trak/models/leaderboard_entry.dart';
 import '../database/app_database.dart';
 
 class SqfRepository {
-  final AppDatabase _db = AppDatabase.instance;
+  final AppDatabase _db;
+
+  SqfRepository({AppDatabase? db}) : _db = db ?? AppDatabase.instance;
   final _stepsController = StreamController<int>.broadcast();
   final _leaderboardController =
       StreamController<List<LeaderboardEntry>>.broadcast();
