@@ -3,6 +3,7 @@ class Friend {
   final String friendId;
   final String? username;
   final String? displayName;
+  final String? avatarUrl;
   final String createdAt;
 
   Friend({
@@ -10,6 +11,7 @@ class Friend {
     required this.friendId,
     this.username,
     this.displayName,
+    this.avatarUrl,
     required this.createdAt,
   });
 
@@ -19,17 +21,31 @@ class Friend {
       friendId: map['friendId'] as String,
       username: map['username'] as String?,
       displayName: map['displayName'] as String?,
+      avatarUrl: map['avatarUrl'] as String?,
       createdAt: map['createdAt'] as String,
+    );
+  }
+
+  factory Friend.fromMap(Map<String, dynamic> map) {
+    return Friend(
+      userId: map['user_id'] as String,
+      friendId: map['friend_id'] as String,
+      username: map['username'] as String?,
+      displayName: map['display_name'] as String?,
+      avatarUrl: map['avatar_url'] as String?,
+      createdAt: map['created_at'] as String,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'userId': userId,
-      'friendId': friendId,
+      'friend_id': friendId,
+      'user_id': userId,
       'username': username,
-      'displayName': displayName,
-      'createdAt': createdAt,
+      'display_name': displayName,
+      'avatar_url': avatarUrl,
+      'created_at': createdAt,
+      'cached_at': DateTime.now().millisecondsSinceEpoch,
     };
   }
 }

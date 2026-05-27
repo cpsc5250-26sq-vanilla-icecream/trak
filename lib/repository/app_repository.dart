@@ -14,5 +14,5 @@ abstract class AppRepository {
   Future<UseItemResult> useItem(String itemId, String targetUserId);
   Future<void> addFriend(String username);
   Future<void> removeFriend(String friendId);
-  Future<List<Friend>> getFriends();
+  Stream<List<Friend>> watchFriends();
 }

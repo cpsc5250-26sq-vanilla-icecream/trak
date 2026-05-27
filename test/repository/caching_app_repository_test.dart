@@ -27,10 +27,16 @@ class _FakeCloud extends CloudRepository {
 
 class _FakeCache extends SqfRepository {
   List<LeaderboardEntry>? pushedLeaderboard;
+  List<Friend>? pushedFriends;
 
   @override
   Future<void> pushLeaderboard(List<LeaderboardEntry> entries) async {
     pushedLeaderboard = entries;
+  }
+
+  @override
+  Future<void> pushFriends(List<Friend> friends) async {
+    pushedFriends = friends;
   }
 }
 

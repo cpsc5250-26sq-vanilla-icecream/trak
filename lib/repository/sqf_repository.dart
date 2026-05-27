@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:trak/models/friend.dart';
 import 'package:trak/models/inventory_item.dart';
 import 'package:trak/models/leaderboard_entry.dart';
 import '../database/app_database.dart';
@@ -10,6 +11,9 @@ class SqfRepository {
   final _stepsController = StreamController<int>.broadcast();
   final _leaderboardController =
       StreamController<List<LeaderboardEntry>>.broadcast();
+  final _inventoryController =
+      StreamController<List<InventoryItem>>.broadcast();
+  final _friendsController = StreamController<List<Friend>>.broadcast();
 
   String _today() => DateTime.now().toIso8601String().split('T').first;
 
@@ -30,6 +34,18 @@ class SqfRepository {
     await _notify();
   }
 
+  Future<void> pushInventory(List<InventoryItem> items) async {
+    await _db.replaceInventory(items);
+    await _db.updateSyncTime(AppDatabase.syncKeyInventory);
+    _inventoryController.add(items);
+  }
+
+  Future<void> pushFriends(List<Friend> friends) async {
+    await _db.replaceFriends(friends);
+    await _db.updateSyncTime(AppDatabase.syncKeyFriends);
+    _friendsController.add(friends);
+  }
+
   Stream<List<LeaderboardEntry>> watchLeaderboard() {
     _db.getLeaderboard().then((entries) {
       if (!_leaderboardController.isClosed) _leaderboardController.add(entries);
@@ -43,12 +59,23 @@ class SqfRepository {
   }
 
   Stream<List<InventoryItem>> watchInventory() {
-    // TODO: implement watchInventory
-    throw UnimplementedError();
+    _db.getInventory().then((items) {
+      if (!_inventoryController.isClosed) _inventoryController.add(items);
+    });
+    return _inventoryController.stream;
+  }
+
+  Stream<List<Friend>> watchFriends() {
+    _db.getFriends().then((friends) {
+      if (!_friendsController.isClosed) _friendsController.add(friends);
+    });
+    return _friendsController.stream;
   }
 
   void dispose() {
     _stepsController.close();
     _leaderboardController.close();
+    _inventoryController.close();
+    _friendsController.close();
   }
 }

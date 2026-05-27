@@ -35,58 +35,62 @@ class HomeScreen extends ConsumerWidget {
         child: const Icon(Icons.logout),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              user.when(
-                data: (u) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hello, ${u.displayName.isNotEmpty ? u.displayName : u.username}',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    Text(
-                      '@${u.username}',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(syncServiceProvider).syncOnForeground(),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                user.when(
+                  data: (u) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hello, ${u.displayName.isNotEmpty ? u.displayName : u.username}',
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
-                    ),
-                  ],
+                      Text(
+                        '@${u.username}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (e, _) => Text('Error: $e'),
                 ),
-                loading: () => const SizedBox.shrink(),
-                error: (e, _) => Text('Error: $e'),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Steps today',
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              steps.when(
-                data: (s) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '$s',
-                      style: Theme.of(context).textTheme.displayMedium,
-                    ),
-                    Text(
-                      '≈ ${stepsToPoints(s)} pts today  ·  $confirmedPoints pts total',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                const SizedBox(height: 24),
+                Text(
+                  'Steps today',
+                  style: Theme.of(context).textTheme.labelLarge,
                 ),
-                loading: () => const CircularProgressIndicator(),
-                error: (e, _) => Text('Error: $e'),
-              ),
-              const SizedBox(height: 32),
-              const LeaderboardWidget(),
-              const SizedBox(height: 32),
-              const _TestNotification(),
-            ],
+                steps.when(
+                  data: (s) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$s',
+                        style: Theme.of(context).textTheme.displayMedium,
+                      ),
+                      Text(
+                        '≈ ${stepsToPoints(s)} pts today  ·  $confirmedPoints pts total',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                  loading: () => const CircularProgressIndicator(),
+                  error: (e, _) => Text('Error: $e'),
+                ),
+                const SizedBox(height: 32),
+                const LeaderboardWidget(),
+                const SizedBox(height: 32),
+                const _TestNotification(),
+              ],
+            ),
           ),
         ),
       ),

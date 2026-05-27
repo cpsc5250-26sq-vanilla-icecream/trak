@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trak/models/friend.dart';
+import 'package:trak/models/inventory_item.dart';
 import 'package:trak/models/leaderboard_entry.dart';
 import 'package:trak/repository/cloud_repository.dart';
 import 'package:trak/repository/health_repository.dart';
@@ -39,6 +41,12 @@ class _FakeCloud extends CloudRepository {
 
   @override
   Future<List<LeaderboardEntry>> fetchLeaderboard() async => leaderboard;
+
+  @override
+  Future<List<Friend>> fetchFriends() async => [];
+
+  @override
+  Future<List<InventoryItem>> fetchInventory() async => [];
 }
 
 class _FakeRepo extends SqfRepository {
@@ -54,6 +62,12 @@ class _FakeRepo extends SqfRepository {
   Future<void> pushLeaderboard(List<LeaderboardEntry> entries) async {
     lastLeaderboard = entries;
   }
+
+  @override
+  Future<void> pushFriends(List<Friend> friends) async {}
+
+  @override
+  Future<void> pushInventory(List<InventoryItem> items) async {}
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────

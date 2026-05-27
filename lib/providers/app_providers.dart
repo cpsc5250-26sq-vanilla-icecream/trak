@@ -68,9 +68,9 @@ final inventoryProvider = StreamProvider<List<InventoryItem>>(
   (ref) => ref.watch(repositoryProvider).watchInventory(),
 );
 
-final friendsProvider = FutureProvider<List<Friend>>((ref) async {
-  return ref.watch(repositoryProvider).getFriends();
-});
+final friendsProvider = StreamProvider<List<Friend>>(
+  (ref) => ref.watch(repositoryProvider).watchFriends(),
+);
 
 final stepCountProvider = StreamProvider<int>(
   (ref) => ref.watch(repositoryProvider).watchStepCount(),
