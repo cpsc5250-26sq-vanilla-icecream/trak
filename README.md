@@ -41,7 +41,7 @@ The app defaults to a mock backend (`MockAppRepository`) in debug builds. A togg
 flutter test --coverage
 ```
 
-Coverage requirements are enforced in CI and change each sprint (currently **45%** for Sprint 2). If you can get to **60%** on code you touch, that's ideal as we'll need to hit that threshold eventually anyway.
+Coverage requirements are enforced in CI and change each sprint (currently **60%** for Sprint 3).
 
 ### QR code test assets (Milestone 2)
 
@@ -92,8 +92,8 @@ The AWS backend is already deployed. See [`trak-sam/README.md`](trak-sam/README.
 | Sprint | Status | Goals |
 |---|---|---|
 | Sprint 1 | Complete | Step count from device, AWS setup (Cognito/API Gateway/DynamoDB), local cache, profile/sign-in, add friends by username |
-| Sprint 2 | In progress | Steps → points, leaderboard screen, nav layout, QR friend add, push notification POC, profile page, cloud inventory API |
-| Sprint 3 | Not started | UI settings (colors/fonts/backgrounds), powerups & attacks, full push notifications, historical leaderboards |
+| Sprint 2 | Complete | Steps → points, leaderboard screen, nav layout, QR friend add, push notification POC, profile page, cloud inventory API |
+| Sprint 3 | In progress | Profile page (adjust display name and avatar), point powerups and attacks, push notifications for powerup availability and attack events, historical leaderboards |
 
 ---
 
@@ -138,7 +138,7 @@ GitHub Actions runs on every PR to `main` and `dev`:
 
 1. `dart format` check
 2. `flutter analyze`
-3. `flutter test --coverage` with minimum coverage gate (30% for Sprint 1)
+3. `flutter test --coverage` with minimum coverage gate (60% for Sprint 3)
 4. `flutter build apk --debug`
 
 The mock/live toggle is only visible in debug builds (`kDebugMode`). Release builds always use the live backend.
