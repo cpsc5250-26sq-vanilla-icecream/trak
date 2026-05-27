@@ -27,9 +27,12 @@ class PushNotificationService {
   }
 
   static Future<void> _printToken() async {
-    final token = await _messaging.getToken();
-
-    debugPrint('FCM TOKEN: $token');
+    try {
+      final token = await _messaging.getToken();
+      debugPrint('FCM TOKEN: $token');
+    } catch (e) {
+      debugPrint('FCM token not yet available: $e');
+    }
   }
 
   static void _listenForeground() {

@@ -47,8 +47,28 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Trak reads your step count to track your daily activity.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Trak saves your step count to Apple Health.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Trak uses the camera to scan QR codes to add friends.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>trak</string>
+			</array>
+		</dict>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
