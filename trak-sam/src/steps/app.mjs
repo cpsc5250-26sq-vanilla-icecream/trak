@@ -28,13 +28,15 @@ async function submitSteps(event) {
   const now = new Date().toISOString();
 
   const existing = await ddb.send(new GetCommand({ TableName: STEPS_TABLE, Key: { userId, date: today } }));
-  const prevPoints = existing.Item ? stepsToPoints(existing.Item.stepCount) : 0;
-  const newPoints = stepsToPoints(stepCount);
+  const resolvedStepCount = Math.max(stepCount, existing.Item?.stepCount ?? 0);
+  const adjustments = existing.Item?.adjustments ?? 0;
+  const prevPoints = existing.Item?.points ?? 0;
+  const newPoints = Math.max(0, stepsToPoints(resolvedStepCount) + adjustments);
   const pointDelta = newPoints - prevPoints;
 
   await ddb.send(new PutCommand({
     TableName: STEPS_TABLE,
-    Item: { userId, date: today, stepCount, createdAt: existing.Item?.createdAt ?? now, updatedAt: now },
+    Item: { userId, date: today, stepCount: resolvedStepCount, adjustments, points: newPoints, createdAt: existing.Item?.createdAt ?? now, updatedAt: now },
   }));
 
   if (pointDelta !== 0) {
@@ -46,7 +48,7 @@ async function submitSteps(event) {
     }));
   }
 
-  return res(200, { userId, date: today, stepCount, points: newPoints });
+  return res(200, { userId, date: today, stepCount, adjustments, points: newPoints });
 }
 
 async function getSteps(event) {
