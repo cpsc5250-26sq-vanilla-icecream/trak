@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:trak/models/friend.dart';
 import 'package:trak/models/inventory_item.dart';
 import 'package:trak/models/leaderboard_entry.dart';
 
@@ -9,6 +10,8 @@ class AppDatabase {
 
   static const syncKeySteps = 'steps';
   static const syncKeyLeaderboard = 'leaderboard';
+  static const syncKeyFriends = 'friends';
+  static const syncKeyInventory = 'inventory';
 
   AppDatabase._();
 
@@ -17,8 +20,9 @@ class AppDatabase {
   static Future<AppDatabase> openInMemory() async {
     final db = await openDatabase(
       inMemoryDatabasePath,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _upgradeDB,
     );
     return AppDatabase.fromDatabase(db);
   }
@@ -35,7 +39,12 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, fileName);
 
-    return openDatabase(path, version: 1, onCreate: _createDB);
+    return openDatabase(
+      path,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _upgradeDB,
+    );
   }
 
   static Future<void> _createDB(Database db, int version) async {
@@ -73,6 +82,29 @@ class AppDatabase {
       last_synced_at INTEGER NOT NULL
       )
     ''');
+    await _createFriendsTable(db);
+  }
+
+  static Future<void> _createFriendsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE friends_cache (
+      friend_id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      username TEXT,
+      display_name TEXT,
+      avatar_url TEXT,
+      created_at TEXT NOT NULL,
+      cached_at INTEGER NOT NULL
+      )
+    ''');
+  }
+
+  static Future<void> _upgradeDB(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    if (oldVersion < 2) await _createFriendsTable(db);
   }
 
   Future<void> replaceLeaderboard(List<LeaderboardEntry> entries) async {
@@ -116,6 +148,16 @@ class AppDatabase {
     return null;
   }
 
+  Future<void> replaceInventory(List<InventoryItem> items) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete('inventory_cache');
+      for (final item in items) {
+        await txn.insert('inventory_cache', item.toMap());
+      }
+    });
+  }
+
   Future<void> upsertInventory(List<InventoryItem> items) async {
     final db = await database;
     await db.transaction((txn) async {
@@ -142,6 +184,22 @@ class AppDatabase {
     final db = await database;
     final rows = await db.query('inventory_cache');
     return rows.map((e) => InventoryItem.fromMap(e)).toList();
+  }
+
+  Future<void> replaceFriends(List<Friend> friends) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete('friends_cache');
+      for (final friend in friends) {
+        await txn.insert('friends_cache', friend.toMap());
+      }
+    });
+  }
+
+  Future<List<Friend>> getFriends() async {
+    final db = await database;
+    final rows = await db.query('friends_cache');
+    return rows.map((e) => Friend.fromMap(e)).toList();
   }
 
   Future<void> updateSyncTime(String type) async {

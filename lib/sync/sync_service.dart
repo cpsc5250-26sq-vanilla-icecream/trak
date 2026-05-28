@@ -25,11 +25,17 @@ class SyncService {
       // Fix: deploy lambda patch that omits null username from PutCommand.
       safePrint('upsertUser failed, continuing sync: $e');
     }
-    await Future.wait([_syncSteps(), _syncLeaderboard()]);
+    await Future.wait([
+      _syncSteps(),
+      _syncLeaderboard(),
+      _syncFriends(),
+      _syncInventory(),
+    ]);
   }
 
   Future<void> syncOnForeground() async {
-    await Future.wait([_syncSteps(), _syncLeaderboard()]);
+    await _syncSteps();
+    await Future.wait([_syncLeaderboard(), _syncFriends(), _syncInventory()]);
   }
 
   Future<void> _syncSteps() async {
@@ -42,5 +48,15 @@ class SyncService {
   Future<void> _syncLeaderboard() async {
     final entries = await _cloud.fetchLeaderboard();
     await _repo.pushLeaderboard(entries);
+  }
+
+  Future<void> _syncFriends() async {
+    final friends = await _cloud.fetchFriends();
+    await _repo.pushFriends(friends);
+  }
+
+  Future<void> _syncInventory() async {
+    final items = await _cloud.fetchInventory();
+    await _repo.pushInventory(items);
   }
 }

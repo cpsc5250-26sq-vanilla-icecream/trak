@@ -30,8 +30,12 @@ class LocalNotificationService {
           priority: Priority.high,
         );
 
+    const DarwinNotificationDetails iosNotificationDetails =
+        DarwinNotificationDetails();
+
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
+      iOS: iosNotificationDetails,
     );
 
     await _notifications.show(

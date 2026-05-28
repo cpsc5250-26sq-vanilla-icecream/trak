@@ -41,25 +41,23 @@ class _FakeRepository implements AppRepository {
   Future<void> removeFriend(String friendId) async {}
 
   @override
-  Future<List<Friend>> getFriends() async {
-    return [
-      Friend(
-        userId: 'user-000',
-        friendId: 'alice123',
-        createdAt: '2026-05-18T12:00:00Z',
-      ),
-      Friend(
-        userId: 'user-002',
-        friendId: 'alex_walks',
-        createdAt: '2026-05-18T12:00:00Z',
-      ),
-      Friend(
-        userId: 'user-003',
-        friendId: 'steph_steps',
-        createdAt: '2026-05-18T12:00:00Z',
-      ),
-    ];
-  }
+  Stream<List<Friend>> watchFriends() => Stream.value([
+    Friend(
+      userId: 'user-000',
+      friendId: 'alice123',
+      createdAt: '2026-05-18T12:00:00Z',
+    ),
+    Friend(
+      userId: 'user-002',
+      friendId: 'alex_walks',
+      createdAt: '2026-05-18T12:00:00Z',
+    ),
+    Friend(
+      userId: 'user-003',
+      friendId: 'steph_steps',
+      createdAt: '2026-05-18T12:00:00Z',
+    ),
+  ]);
 }
 
 Widget _wrap(_FakeRepository repo) => ProviderScope(

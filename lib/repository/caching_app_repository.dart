@@ -28,7 +28,9 @@ class CachingAppRepository implements AppRepository {
   Stream<int> watchStepCount() => _cache.watchStepCount();
 
   @override
-  // TODO: cache profile in a user_profile SQLite table with write-through on syncOnLogin
+  Stream<List<Friend>> watchFriends() => _cache.watchFriends();
+
+  @override
   Future<UserProfile> getCurrentUser() => _cloud.getCurrentUser();
 
   @override
@@ -40,25 +42,24 @@ class CachingAppRepository implements AppRepository {
   @override
   Future<void> addFriend(String username) async {
     await _cloud.addFriend(username);
-    final entries = await _cloud.fetchLeaderboard();
-    await _cache.pushLeaderboard(entries);
+    final results = await Future.wait([
+      _cloud.fetchFriends(),
+      _cloud.fetchLeaderboard(),
+    ]);
+    await _cache.pushFriends(results[0] as List<Friend>);
+    await _cache.pushLeaderboard(results[1] as List<LeaderboardEntry>);
   }
 
   @override
-  Future<void> removeFriend(String friendId) => _cloud.removeFriend(friendId);
+  Future<void> removeFriend(String friendId) async {
+    await _cloud.removeFriend(friendId);
+    final friends = await _cloud.fetchFriends();
+    await _cache.pushFriends(friends);
+  }
 
   @override
   Future<UseItemResult> useItem(String itemId, String targetUserId) {
     // TODO: implement useItem
     throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Friend>> getFriends() {
-    // TODO: Implement write-through caching.
-    // 1. Read friends from local cache (SqfRepository).
-    // 2. Sync with cloud in background.
-    // 3. Persist cloud response back into cache.
-    return _cloud.fetchFriends();
   }
 }

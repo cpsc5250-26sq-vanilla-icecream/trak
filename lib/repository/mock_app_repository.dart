@@ -16,11 +16,13 @@ class MockAppRepository implements AppRepository {
   final _inventoryController =
       StreamController<List<InventoryItem>>.broadcast();
   final _stepController = StreamController<int>.broadcast();
+  final _friendsController = StreamController<List<Friend>>.broadcast();
 
   final _tickPayload = 12;
   var _steps = 4200;
   var _leaderboard = _initialLeaderboard();
   var _inventory = _initialInventory();
+  var _friends = _initialFriends();
 
   late final Timer _tickTimer;
 
@@ -123,12 +125,27 @@ class MockAppRepository implements AppRepository {
     );
     _leaderboard = _rerank([..._leaderboard, newEntry]);
     _leaderboardController.add(_leaderboard);
+
+    _friends = [
+      ..._friends,
+      Friend(
+        userId: _currentUserId,
+        friendId: targetUserId,
+        username: targetUserId,
+        displayName: targetUserId,
+        createdAt: DateTime.now().toIso8601String(),
+      ),
+    ];
+    _friendsController.add(_friends);
   }
 
   @override
   Future<void> removeFriend(String targetUserId) async {
     _leaderboard = _leaderboard.where((e) => e.userId != targetUserId).toList();
     _leaderboardController.add(_leaderboard);
+
+    _friends = _friends.where((f) => f.friendId != targetUserId).toList();
+    _friendsController.add(_friends);
   }
 
   void dispose() {
@@ -136,6 +153,7 @@ class MockAppRepository implements AppRepository {
     _leaderboardController.close();
     _inventoryController.close();
     _stepController.close();
+    _friendsController.close();
   }
 
   static List<LeaderboardEntry> _initialLeaderboard() => _rerank([
@@ -201,29 +219,32 @@ class MockAppRepository implements AppRepository {
   }
 
   @override
-  Future<List<Friend>> getFriends() async {
-    return [
-      Friend(
-        userId: 'user-000',
-        friendId: 'alice123',
-        username: 'alice123',
-        displayName: 'Alice',
-        createdAt: '2026-05-18T12:00:00Z',
-      ),
-      Friend(
-        userId: 'user-002',
-        friendId: 'alex_walks',
-        username: 'alex_walks',
-        displayName: 'Alex',
-        createdAt: '2026-05-18T12:00:00Z',
-      ),
-      Friend(
-        userId: 'user-003',
-        friendId: 'steph_steps',
-        username: 'steph_steps',
-        displayName: 'Steph',
-        createdAt: '2026-05-18T12:00:00Z',
-      ),
-    ];
+  Stream<List<Friend>> watchFriends() async* {
+    yield _friends;
+    yield* _friendsController.stream;
   }
+
+  static List<Friend> _initialFriends() => [
+    Friend(
+      userId: 'user-000',
+      friendId: 'alice123',
+      username: 'alice123',
+      displayName: 'Alice',
+      createdAt: '2026-05-18T12:00:00Z',
+    ),
+    Friend(
+      userId: 'user-002',
+      friendId: 'alex_walks',
+      username: 'alex_walks',
+      displayName: 'Alex',
+      createdAt: '2026-05-18T12:00:00Z',
+    ),
+    Friend(
+      userId: 'user-003',
+      friendId: 'steph_steps',
+      username: 'steph_steps',
+      displayName: 'Steph',
+      createdAt: '2026-05-18T12:00:00Z',
+    ),
+  ];
 }
