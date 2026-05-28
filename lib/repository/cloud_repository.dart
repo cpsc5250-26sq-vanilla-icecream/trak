@@ -62,10 +62,14 @@ class CloudRepository {
   }
 
   Future<void> submitSteps(int stepCount) async {
+    final now = DateTime.now();
+    final date =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final response = await http.post(
     final response = await _client.post(
       Uri.parse('$_base/steps'),
       headers: await _headers(),
-      body: jsonEncode({'stepCount': stepCount}),
+      body: jsonEncode({'stepCount': stepCount, 'date': date}),
     );
     _check(response, 'submitSteps');
   }
