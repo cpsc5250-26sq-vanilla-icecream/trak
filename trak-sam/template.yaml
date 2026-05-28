@@ -22,6 +22,7 @@ Globals:
         STEPS_TABLE: !Ref StepsTable
         FRIENDS_TABLE: !Ref FriendsTable
         INVENTORY_TABLE: !Ref InventoryTable
+        SNAPSHOTS_TABLE: !Ref SnapshotsTable
 
 Resources:
 
@@ -94,6 +95,22 @@ Resources:
         - AttributeName: userId
           KeyType: HASH
         - AttributeName: friendId
+          KeyType: RANGE
+
+  SnapshotsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-snapshots"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: date
           KeyType: RANGE
 
   InventoryTable:
@@ -176,6 +193,10 @@ Resources:
             TableName: !Ref UsersTable
         - DynamoDBReadPolicy:
             TableName: !Ref FriendsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref StepsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref SnapshotsTable
       Events:
         GetLeaderboard:
           Type: HttpApi
@@ -224,6 +245,8 @@ Resources:
             TableName: !Ref InventoryTable
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref StepsTable
       Events:
         GetInventory:
           Type: HttpApi
@@ -243,6 +266,28 @@ Resources:
             ApiId: !Ref TrakApi
             Path: /inventory
             Method: POST
+
+  SnapshotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/snapshot/
+      Handler: app.handler
+      Timeout: 60
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref FriendsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref StepsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SnapshotsTable
+      Events:
+        DailySnapshot:
+          Type: Schedule
+          Properties:
+            Schedule: cron(5 0 * * ? *)
+            Description: Snapshot daily leaderboards at 00:05 UTC
 
 Outputs:
   ApiUrl:
