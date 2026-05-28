@@ -98,6 +98,7 @@ String? computeRedirect({
 
 class _RouterNotifier extends ChangeNotifier {
   final Ref _ref;
+  bool _hasSynced = false;
 
   _RouterNotifier(this._ref) {
     _ref.listen(authStateProvider, (prev, next) {
@@ -112,11 +113,14 @@ class _RouterNotifier extends ChangeNotifier {
 
   void _onAuthChanged(AsyncValue<AuthUser?>? prev, AsyncValue<AuthUser?> next) {
     if (next.isLoading) return;
-    final wasSignedIn = prev?.asData?.value != null;
     final isSignedIn = next.asData?.value != null;
-    if (!isSignedIn) return;
+    if (!isSignedIn) {
+      _hasSynced = false;
+      return;
+    }
     final sync = _ref.read(syncServiceProvider);
-    if (!wasSignedIn) {
+    if (!_hasSynced) {
+      _hasSynced = true;
       sync.syncOnLogin();
     } else {
       sync.syncOnForeground();
