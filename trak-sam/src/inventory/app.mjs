@@ -1,9 +1,12 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, DeleteCommand, GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, DeleteCommand, GetCommand, PutCommand, QueryCommand, TransactWriteCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const INVENTORY_TABLE = process.env.INVENTORY_TABLE;
 const USERS_TABLE = process.env.USERS_TABLE;
+const STEPS_TABLE = process.env.STEPS_TABLE;
+
+const stepsToPoints = (steps) => Math.floor(steps / 100);
 
 const POINT_DELTA = { powerup: 250, attack: -250 };
 
@@ -43,40 +46,62 @@ async function useItem(event) {
   }
 
   const { type } = itemResult.Item;
-  const delta = POINT_DELTA[type];
-  if (delta === undefined) {
+  const adjustmentDelta = POINT_DELTA[type];
+  if (adjustmentDelta === undefined) {
     return res(400, { message: `Unknown item type: ${type}` });
   }
 
-  // Read current points to apply floor of 0 for attacks
-  const targetResult = await ddb.send(new GetCommand({
-    TableName: USERS_TABLE,
-    Key: { userId: targetUserId },
+  const today = new Date().toISOString().split("T")[0];
+  const now = new Date().toISOString();
+
+  const stepsResult = await ddb.send(new GetCommand({
+    TableName: STEPS_TABLE,
+    Key: { userId: targetUserId, date: today },
   }));
 
-  if (!targetResult.Item) {
-    return res(404, { message: "Target user not found" });
-  }
+  const existing = stepsResult.Item;
+  const stepCount = existing?.stepCount ?? 0;
+  const prevAdjustments = existing?.adjustments ?? 0;
+  const prevPoints = existing?.points ?? 0;
 
-  const currentPoints = targetResult.Item.points ?? 0;
-  const newPoints = Math.max(0, currentPoints + delta);
+  const newAdjustments = prevAdjustments + adjustmentDelta;
+  const newPoints = Math.max(0, stepsToPoints(stepCount) + newAdjustments);
+  const pointDelta = newPoints - prevPoints;
 
-  await ddb.send(new DeleteCommand({
-    TableName: INVENTORY_TABLE,
-    Key: { userId, itemId },
+  await ddb.send(new TransactWriteCommand({
+    TransactItems: [
+      {
+        Delete: {
+          TableName: INVENTORY_TABLE,
+          Key: { userId, itemId },
+        },
+      },
+      {
+        Put: {
+          TableName: STEPS_TABLE,
+          Item: {
+            userId: targetUserId,
+            date: today,
+            stepCount,
+            adjustments: newAdjustments,
+            points: newPoints,
+            createdAt: existing?.createdAt ?? now,
+            updatedAt: now,
+          },
+        },
+      },
+      {
+        Update: {
+          TableName: USERS_TABLE,
+          Key: { userId: targetUserId },
+          UpdateExpression: "SET points = if_not_exists(points, :zero) + :delta, updatedAt = :now",
+          ExpressionAttributeValues: { ":delta": pointDelta, ":zero": 0, ":now": now },
+        },
+      },
+    ],
   }));
 
-  await ddb.send(new UpdateCommand({
-    TableName: USERS_TABLE,
-    Key: { userId: targetUserId },
-    UpdateExpression: "SET points = :p, updatedAt = :now",
-    ExpressionAttributeValues: {
-      ":p": newPoints,
-      ":now": new Date().toISOString(),
-    },
-  }));
-
-  return res(200, { success: true, itemId, targetUserId, pointDelta: newPoints - currentPoints });
+  return res(200, { success: true, itemId, targetUserId, pointDelta });
 }
 
 // Grants an item to the authenticated user — used for testing / admin seeding
