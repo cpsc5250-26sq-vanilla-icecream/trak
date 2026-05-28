@@ -64,6 +64,10 @@ final leaderboardProvider = StreamProvider<List<LeaderboardEntry>>(
   (ref) => ref.watch(repositoryProvider).watchLeaderboard(),
 );
 
+final historicalLeaderboardProvider = FutureProvider.family<List<LeaderboardEntry>, String>(
+  (ref, date) => ref.watch(cloudRepositoryProvider).fetchLeaderboard(date: date),
+);
+
 final inventoryProvider = StreamProvider<List<InventoryItem>>(
   (ref) => ref.watch(repositoryProvider).watchInventory(),
 );

@@ -65,7 +65,6 @@ class CloudRepository {
     final now = DateTime.now();
     final date =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-    final response = await http.post(
     final response = await _client.post(
       Uri.parse('$_base/steps'),
       headers: await _headers(),
@@ -100,11 +99,11 @@ class CloudRepository {
     _check(response, 'setUsername');
   }
 
-  Future<List<LeaderboardEntry>> fetchLeaderboard() async {
-    final response = await _client.get(
-      Uri.parse('$_base/leaderboard'),
-      headers: await _headers(),
+  Future<List<LeaderboardEntry>> fetchLeaderboard({String? date}) async {
+    final uri = Uri.parse('$_base/leaderboard').replace(
+      queryParameters: date != null ? {'date': date} : null,
     );
+    final response = await _client.get(uri, headers: await _headers());
     _check(response, 'fetchLeaderboard');
     final list = jsonDecode(response.body) as List<dynamic>;
     return list

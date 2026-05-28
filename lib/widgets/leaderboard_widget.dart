@@ -89,7 +89,7 @@ class _LeaderboardRow extends StatelessWidget {
           children: [
             Flexible(
               child: Text(
-                entry.username,
+                entry.displayName ?? entry.username,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: isCurrentUser
                       ? FontWeight.bold
