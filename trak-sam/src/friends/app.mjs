@@ -1,9 +1,10 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, BatchGetCommand, DeleteCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, BatchGetCommand, DeleteCommand, GetCommand, PutCommand, QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const USERS_TABLE = process.env.USERS_TABLE;
 const FRIENDS_TABLE = process.env.FRIENDS_TABLE;
+const FRIEND_REQUESTS_TABLE = process.env.FRIEND_REQUESTS_TABLE;
 
 const res = (statusCode, body) => ({
   statusCode,
@@ -13,7 +14,7 @@ const res = (statusCode, body) => ({
 
 const getUserId = (event) => event.requestContext.authorizer.jwt.claims.sub;
 
-async function addFriend(event) {
+async function sendFriendRequest(event) {
   const userId = getUserId(event);
   const { username } = JSON.parse(event.body || "{}");
 
@@ -27,21 +28,99 @@ async function addFriend(event) {
   }));
 
   if (!result.Items?.length) return res(404, { message: "User not found" });
-  const friend = result.Items[0];
-  if (friend.userId === userId) return res(400, { message: "Cannot add yourself" });
+  const target = result.Items[0];
+  if (target.userId === userId) return res(400, { message: "Cannot add yourself" });
+
+  const [existingFriend, existingRequest, reverseRequest, currentUserResult] = await Promise.all([
+    ddb.send(new GetCommand({ TableName: FRIENDS_TABLE, Key: { userId, friendId: target.userId } })),
+    ddb.send(new GetCommand({ TableName: FRIEND_REQUESTS_TABLE, Key: { toUserId: target.userId, fromUserId: userId } })),
+    ddb.send(new GetCommand({ TableName: FRIEND_REQUESTS_TABLE, Key: { toUserId: userId, fromUserId: target.userId } })),
+    ddb.send(new GetCommand({ TableName: USERS_TABLE, Key: { userId } })),
+  ]);
+
+  if (existingFriend.Item) return res(409, { message: "Already friends" });
+  if (existingRequest.Item) return res(409, { message: "Request already sent" });
+
+  const now = new Date().toISOString();
+  const currentUser = currentUserResult.Item ?? {};
+
+  if (reverseRequest.Item) {
+    // They already sent us a request — auto-accept both sides
+    await ddb.send(new TransactWriteCommand({
+      TransactItems: [
+        { Put: { TableName: FRIENDS_TABLE, Item: { userId, friendId: target.userId, createdAt: now } } },
+        { Put: { TableName: FRIENDS_TABLE, Item: { userId: target.userId, friendId: userId, createdAt: now } } },
+        { Delete: { TableName: FRIEND_REQUESTS_TABLE, Key: { toUserId: userId, fromUserId: target.userId } } },
+      ],
+    }));
+    return res(200, { status: "accepted" });
+  }
 
   await ddb.send(new PutCommand({
-    TableName: FRIENDS_TABLE,
-    Item: { userId, friendId: friend.userId, createdAt: new Date().toISOString() },
+    TableName: FRIEND_REQUESTS_TABLE,
+    Item: {
+      toUserId: target.userId,
+      fromUserId: userId,
+      fromUsername: currentUser.username ?? userId,
+      fromDisplayName: currentUser.displayName ?? null,
+      fromAvatarUrl: currentUser.avatarUrl ?? null,
+      createdAt: now,
+    },
   }));
 
-  return res(200, { friendId: friend.userId, username: friend.username, displayName: friend.displayName });
+  return res(200, { status: "pending" });
+}
+
+async function listIncomingRequests(event) {
+  const userId = getUserId(event);
+  const result = await ddb.send(new QueryCommand({
+    TableName: FRIEND_REQUESTS_TABLE,
+    KeyConditionExpression: "toUserId = :uid",
+    ExpressionAttributeValues: { ":uid": userId },
+  }));
+  return res(200, result.Items ?? []);
+}
+
+async function acceptRequest(event) {
+  const userId = getUserId(event);
+  const fromUserId = event.pathParameters.fromUserId;
+
+  const requestResult = await ddb.send(new GetCommand({
+    TableName: FRIEND_REQUESTS_TABLE,
+    Key: { toUserId: userId, fromUserId },
+  }));
+  if (!requestResult.Item) return res(404, { message: "Friend request not found" });
+
+  const now = new Date().toISOString();
+  await ddb.send(new TransactWriteCommand({
+    TransactItems: [
+      { Put: { TableName: FRIENDS_TABLE, Item: { userId, friendId: fromUserId, createdAt: now } } },
+      { Put: { TableName: FRIENDS_TABLE, Item: { userId: fromUserId, friendId: userId, createdAt: now } } },
+      { Delete: { TableName: FRIEND_REQUESTS_TABLE, Key: { toUserId: userId, fromUserId } } },
+    ],
+  }));
+  return res(200, { message: "Friend request accepted" });
+}
+
+async function declineRequest(event) {
+  const userId = getUserId(event);
+  const fromUserId = event.pathParameters.fromUserId;
+  await ddb.send(new DeleteCommand({
+    TableName: FRIEND_REQUESTS_TABLE,
+    Key: { toUserId: userId, fromUserId },
+  }));
+  return res(200, { message: "Request declined" });
 }
 
 async function removeFriend(event) {
   const userId = getUserId(event);
   const { friendId } = event.pathParameters;
-  await ddb.send(new DeleteCommand({ TableName: FRIENDS_TABLE, Key: { userId, friendId } }));
+  await ddb.send(new TransactWriteCommand({
+    TransactItems: [
+      { Delete: { TableName: FRIENDS_TABLE, Key: { userId, friendId } } },
+      { Delete: { TableName: FRIENDS_TABLE, Key: { userId: friendId, friendId: userId } } },
+    ],
+  }));
   return res(200, { message: "Friend removed" });
 }
 
@@ -69,23 +148,21 @@ async function listFriends(event) {
     (batchResult.Responses?.[USERS_TABLE] ?? []).map((u) => [u.userId, u])
   );
 
-  const enriched = friends.map((f) => {
-    const user = userMap[f.friendId];
-    return {
-      ...f,
-      username: user?.username ?? null,
-      displayName: user?.displayName ?? null,
-    };
-  });
-
-  return res(200, enriched);
+  return res(200, friends.map((f) => ({
+    ...f,
+    username: userMap[f.friendId]?.username ?? null,
+    displayName: userMap[f.friendId]?.displayName || null,
+  })));
 }
 
 export const handler = async (event) => {
   const { method, path } = event.requestContext.http;
   const route = path.replace(/^\/prod/, "");
   try {
-    if (method === "POST" && route === "/friends") return await addFriend(event);
+    if (method === "GET" && route === "/friends/requests") return await listIncomingRequests(event);
+    if (method === "POST" && route.endsWith("/accept")) return await acceptRequest(event);
+    if (method === "DELETE" && route.startsWith("/friends/requests/")) return await declineRequest(event);
+    if (method === "POST" && route === "/friends") return await sendFriendRequest(event);
     if (method === "DELETE") return await removeFriend(event);
     if (method === "GET" && route === "/friends") return await listFriends(event);
     return res(404, { message: "Not found" });
