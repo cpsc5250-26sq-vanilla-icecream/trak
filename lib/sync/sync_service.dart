@@ -24,20 +24,12 @@ class SyncService {
       safePrint('upsertUser failed, continuing sync: $e');
     }
     await _syncSteps().catchError((e) => safePrint('syncSteps failed: $e'));
-    await Future.wait([
-      _syncLeaderboard(),
-      _syncFriends(),
-      _syncInventory(),
-    ]);
+    await Future.wait([_syncLeaderboard(), _syncFriends(), _syncInventory()]);
   }
 
   Future<void> syncOnForeground() async {
     await _syncSteps().catchError((e) => safePrint('syncSteps failed: $e'));
-    await Future.wait([
-      _syncLeaderboard(),
-      _syncFriends(),
-      _syncInventory(),
-    ]);
+    await Future.wait([_syncLeaderboard(), _syncFriends(), _syncInventory()]);
   }
 
   Future<void> _syncSteps() async {

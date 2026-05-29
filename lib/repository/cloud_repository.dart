@@ -99,7 +99,9 @@ class CloudRepository {
 
   Future<List<LeaderboardEntry>> fetchLeaderboard({String? date}) async {
     final uri = date != null
-        ? Uri.parse('$_base/leaderboard').replace(queryParameters: {'date': date})
+        ? Uri.parse(
+            '$_base/leaderboard',
+          ).replace(queryParameters: {'date': date})
         : Uri.parse('$_base/leaderboard');
     final response = await _client.get(uri, headers: await _headers());
     _check(response, 'fetchLeaderboard');

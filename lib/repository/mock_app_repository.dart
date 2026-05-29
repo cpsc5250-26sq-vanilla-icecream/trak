@@ -146,8 +146,12 @@ class MockAppRepository implements AppRepository {
 
   @override
   Future<void> acceptFriendRequest(String fromUserId) async {
-    final req = _pendingRequests.where((r) => r.fromUserId == fromUserId).firstOrNull;
-    _pendingRequests = _pendingRequests.where((r) => r.fromUserId != fromUserId).toList();
+    final req = _pendingRequests
+        .where((r) => r.fromUserId == fromUserId)
+        .firstOrNull;
+    _pendingRequests = _pendingRequests
+        .where((r) => r.fromUserId != fromUserId)
+        .toList();
     if (req == null) return;
 
     _friends = [
@@ -174,7 +178,9 @@ class MockAppRepository implements AppRepository {
 
   @override
   Future<void> declineFriendRequest(String fromUserId) async {
-    _pendingRequests = _pendingRequests.where((r) => r.fromUserId != fromUserId).toList();
+    _pendingRequests = _pendingRequests
+        .where((r) => r.fromUserId != fromUserId)
+        .toList();
   }
 
   @override
