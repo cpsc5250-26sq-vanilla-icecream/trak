@@ -21,12 +21,10 @@ class SyncService {
     try {
       await _cloud.upsertUser();
     } catch (e) {
-      // Non-fatal — submitSteps creates a minimal user record via UpdateCommand.
-      // Fix: deploy lambda patch that omits null username from PutCommand.
       safePrint('upsertUser failed, continuing sync: $e');
     }
+    await _syncSteps().catchError((e) => safePrint('syncSteps failed: $e'));
     await Future.wait([
-      _syncSteps(),
       _syncLeaderboard(),
       _syncFriends(),
       _syncInventory(),
@@ -34,13 +32,22 @@ class SyncService {
   }
 
   Future<void> syncOnForeground() async {
-    await _syncSteps();
-    await Future.wait([_syncLeaderboard(), _syncFriends(), _syncInventory()]);
+    await _syncSteps().catchError((e) => safePrint('syncSteps failed: $e'));
+    await Future.wait([
+      _syncLeaderboard(),
+      _syncFriends(),
+      _syncInventory(),
+    ]);
   }
 
   Future<void> _syncSteps() async {
-    await _health.requestPermission();
-    final steps = await _health.getTodaySteps();
+    int steps = 0;
+    try {
+      await _health.requestPermission().timeout(const Duration(seconds: 5));
+      steps = await _health.getTodaySteps();
+    } catch (e) {
+      safePrint('Health read failed: $e');
+    }
     await _cloud.submitSteps(steps);
     await _repo.putSteps(steps);
   }
