@@ -65,7 +65,8 @@ class CachingAppRepository implements AppRepository {
   }
 
   @override
-  Future<List<FriendRequest>> getFriendRequests() => _cloud.fetchFriendRequests();
+  Future<List<FriendRequest>> getFriendRequests() =>
+      _cloud.fetchFriendRequests();
 
   @override
   Future<void> acceptFriendRequest(String fromUserId) async {

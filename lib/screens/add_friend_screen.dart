@@ -170,8 +170,8 @@ class _FriendRequestList extends ConsumerWidget {
             child: Text(
               'No pending requests',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           );
         }
@@ -182,7 +182,9 @@ class _FriendRequestList extends ConsumerWidget {
           itemBuilder: (context, index) {
             final req = requests[index];
             return ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.person_add_rounded)),
+              leading: const CircleAvatar(
+                child: Icon(Icons.person_add_rounded),
+              ),
               title: Text(req.fromDisplayName ?? req.fromUsername),
               subtitle: Text('@${req.fromUsername}'),
               trailing: Row(
