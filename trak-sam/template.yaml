@@ -23,6 +23,7 @@ Globals:
         FRIENDS_TABLE: !Ref FriendsTable
         INVENTORY_TABLE: !Ref InventoryTable
         SNAPSHOTS_TABLE: !Ref SnapshotsTable
+        FRIEND_REQUESTS_TABLE: !Ref FriendRequestsTable
 
 Resources:
 
@@ -95,6 +96,22 @@ Resources:
         - AttributeName: userId
           KeyType: HASH
         - AttributeName: friendId
+          KeyType: RANGE
+
+  FriendRequestsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-friend-requests"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: toUserId
+          AttributeType: S
+        - AttributeName: fromUserId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: toUserId
+          KeyType: HASH
+        - AttributeName: fromUserId
           KeyType: RANGE
 
   SnapshotsTable:
@@ -215,8 +232,10 @@ Resources:
             TableName: !Ref FriendsTable
         - DynamoDBReadPolicy:
             TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref FriendRequestsTable
       Events:
-        AddFriend:
+        SendFriendRequest:
           Type: HttpApi
           Properties:
             ApiId: !Ref TrakApi
@@ -234,6 +253,24 @@ Resources:
             ApiId: !Ref TrakApi
             Path: /friends
             Method: GET
+        ListFriendRequests:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /friends/requests
+            Method: GET
+        AcceptFriendRequest:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /friends/requests/{fromUserId}/accept
+            Method: POST
+        DeclineFriendRequest:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /friends/requests/{fromUserId}
+            Method: DELETE
 
   InventoryFunction:
     Type: AWS::Serverless::Function
