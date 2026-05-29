@@ -25,7 +25,9 @@ class SyncService {
     }
     await _syncSteps().catchError((e) => safePrint('syncSteps failed: $e'));
     await Future.wait([
-      _syncLeaderboard().catchError((e) => safePrint('syncLeaderboard failed: $e')),
+      _syncLeaderboard().catchError(
+        (e) => safePrint('syncLeaderboard failed: $e'),
+      ),
       _syncFriends().catchError((e) => safePrint('syncFriends failed: $e')),
       _syncInventory().catchError((e) => safePrint('syncInventory failed: $e')),
     ]);
@@ -34,7 +36,9 @@ class SyncService {
   Future<void> syncOnForeground() async {
     await _syncSteps().catchError((e) => safePrint('syncSteps failed: $e'));
     await Future.wait([
-      _syncLeaderboard().catchError((e) => safePrint('syncLeaderboard failed: $e')),
+      _syncLeaderboard().catchError(
+        (e) => safePrint('syncLeaderboard failed: $e'),
+      ),
       _syncFriends().catchError((e) => safePrint('syncFriends failed: $e')),
       _syncInventory().catchError((e) => safePrint('syncInventory failed: $e')),
     ]);

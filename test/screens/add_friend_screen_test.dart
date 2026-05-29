@@ -71,7 +71,9 @@ class _FakeRepository implements AppRepository {
   }
 
   @override
-  Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(String date) async => [];
+  Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(
+    String date,
+  ) async => [];
 }
 
 Widget _wrap(_FakeRepository repo) => ProviderScope(

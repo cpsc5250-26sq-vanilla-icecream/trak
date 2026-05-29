@@ -184,7 +184,9 @@ class MockAppRepository implements AppRepository {
   }
 
   @override
-  Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(String date) async => [];
+  Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(
+    String date,
+  ) async => [];
 
   @override
   Future<void> removeFriend(String targetUserId) async {
