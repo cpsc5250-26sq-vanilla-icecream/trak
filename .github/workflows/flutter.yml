@@ -33,5 +33,38 @@ jobs:
           path: coverage/lcov.info
           min_coverage: 60
 
+      - name: Install lcov
+        run: sudo apt-get install -y lcov
+
+      - name: Fetch base branch for diff
+        run: git fetch origin ${{ github.base_ref }} --depth=1
+
+      - name: Check per-PR coverage
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep '^lib/.*\.dart$' || true)
+
+          if [ -z "$CHANGED" ]; then
+            echo "No lib/ Dart files changed — skipping per-PR coverage check"
+            exit 0
+          fi
+
+          echo "Checking coverage for:"
+          echo "$CHANGED"
+
+          PATTERNS=$(echo "$CHANGED" | sed 's|^|*/|')
+          lcov --extract coverage/lcov.info $PATTERNS --output-file coverage/pr.info
+
+          if [ ! -s coverage/pr.info ]; then
+            echo "No coverage data found for changed files — skipping"
+            exit 0
+          fi
+
+          lcov --summary coverage/pr.info
+
+          PCT=$(lcov --summary coverage/pr.info 2>&1 | awk '/lines/{gsub(/%/,"",$2); print $2}')
+          echo "PR line coverage: $PCT%"
+
+          awk -v pct="$PCT" 'BEGIN { if (pct+0 < 60) { print "FAIL: " pct "% is below the 60% threshold"; exit 1 } }'
+
       - name: Build APK
         run: flutter build apk --debug
