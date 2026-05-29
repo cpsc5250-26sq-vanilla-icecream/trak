@@ -69,6 +69,9 @@ class _FakeRepository implements AppRepository {
   Future<void> removeFriend(String friendId) async {
     removedFriendId = friendId;
   }
+
+  @override
+  Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(String date) async => [];
 }
 
 Widget _wrap(_FakeRepository repo) => ProviderScope(

@@ -78,4 +78,8 @@ class CachingAppRepository implements AppRepository {
   @override
   Future<void> declineFriendRequest(String fromUserId) =>
       _cloud.declineFriendRequest(fromUserId);
+
+  @override
+  Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(String date) =>
+      _cloud.fetchLeaderboard(date: date);
 }

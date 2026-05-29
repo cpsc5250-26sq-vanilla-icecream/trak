@@ -19,4 +19,5 @@ abstract class AppRepository {
   Future<List<FriendRequest>> getFriendRequests();
   Future<void> acceptFriendRequest(String fromUserId);
   Future<void> declineFriendRequest(String fromUserId);
+  Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(String date);
 }
