@@ -41,7 +41,7 @@ jobs:
 
       - name: Check per-PR coverage
         run: |
-          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '^lib/.*\.dart$' || true)
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }} HEAD | grep '^lib/.*\.dart$' || true)
 
           if [ -z "$CHANGED" ]; then
             echo "No lib/ Dart files changed — skipping per-PR coverage check"
