@@ -52,7 +52,7 @@ jobs:
           echo "$CHANGED"
 
           PATTERNS=$(echo "$CHANGED" | tr '\n' ' ')
-          lcov --extract coverage/lcov.info $PATTERNS --output-file coverage/pr.info
+          lcov --extract --ignore-errors unused coverage/lcov.info $PATTERNS --output-file coverage/pr.info
 
           if [ ! -s coverage/pr.info ]; then
             echo "No coverage data found for changed files — skipping"
