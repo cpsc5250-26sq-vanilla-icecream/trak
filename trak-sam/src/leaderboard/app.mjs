@@ -15,8 +15,9 @@ const res = (statusCode, body) => ({
 
 const getUserId = (event) => event.requestContext.authorizer.jwt.claims.sub;
 const todayDate = () => new Date().toISOString().split("T")[0];
+const stepsToPoints = (steps) => Math.floor((steps ?? 0) / 100);
 
-async function getTodayLeaderboard(userId) {
+async function getTodayLeaderboard(userId, date) {
   const friendsResult = await ddb.send(new QueryCommand({
     TableName: FRIENDS_TABLE,
     KeyConditionExpression: "userId = :uid",
@@ -25,12 +26,11 @@ async function getTodayLeaderboard(userId) {
 
   const friendIds = (friendsResult.Items ?? []).map((f) => f.friendId);
   const allIds = [userId, ...friendIds];
-  const date = todayDate();
 
   const [stepsResult, usersResult] = await Promise.all([
     ddb.send(new BatchGetCommand({
       RequestItems: {
-        [STEPS_TABLE]: { Keys: allIds.map((id) => ({ userId: id, date })) },
+        [STEPS_TABLE]: { Keys: allIds.map((id) => ({ userId: id, date })), ConsistentRead: true },
       },
     })),
     ddb.send(new BatchGetCommand({
@@ -51,13 +51,19 @@ async function getTodayLeaderboard(userId) {
   );
 
   return allIds
-    .map((id) => ({
-      userId: id,
-      username: usersMap[id]?.username ?? id,
-      displayName: usersMap[id]?.displayName ?? null,
-      avatarUrl: usersMap[id]?.avatarUrl ?? null,
-      points: stepsMap[id]?.points ?? 0,
-    }))
+    .map((id) => {
+      const entry = stepsMap[id];
+      const points = entry
+        ? Math.max(0, stepsToPoints(entry.stepCount) + (entry.adjustments ?? 0))
+        : 0;
+      return {
+        userId: id,
+        username: usersMap[id]?.username || id,
+        displayName: usersMap[id]?.displayName || null,
+        avatarUrl: usersMap[id]?.avatarUrl ?? null,
+        points,
+      };
+    })
     .sort((a, b) => b.points - a.points)
     .map((u, i) => ({ ...u, rank: i + 1 }));
 }
@@ -73,6 +79,7 @@ async function getHistoricalLeaderboard(userId, date) {
 export const handler = async (event) => {
   const userId = getUserId(event);
   const date = event.queryStringParameters?.date;
+  const today = event.queryStringParameters?.today ?? todayDate();
 
   try {
     if (date) {
@@ -80,7 +87,7 @@ export const handler = async (event) => {
       if (!entries) return res(404, { message: "No snapshot available for that date" });
       return res(200, entries);
     }
-    return res(200, await getTodayLeaderboard(userId));
+    return res(200, await getTodayLeaderboard(userId, today));
   } catch (err) {
     console.error(err);
     return res(500, { message: "Internal server error" });
