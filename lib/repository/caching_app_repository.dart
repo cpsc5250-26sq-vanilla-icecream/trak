@@ -1,4 +1,5 @@
 import '../models/friend.dart';
+import '../models/friend_request.dart';
 import '../models/inventory_item.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/use_item_result.dart';
@@ -62,4 +63,23 @@ class CachingAppRepository implements AppRepository {
     // TODO: implement useItem
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<FriendRequest>> getFriendRequests() =>
+      _cloud.fetchFriendRequests();
+
+  @override
+  Future<void> acceptFriendRequest(String fromUserId) async {
+    await _cloud.acceptFriendRequest(fromUserId);
+    final friends = await _cloud.fetchFriends();
+    await _cache.pushFriends(friends);
+  }
+
+  @override
+  Future<void> declineFriendRequest(String fromUserId) =>
+      _cloud.declineFriendRequest(fromUserId);
+
+  @override
+  Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(String date) =>
+      _cloud.fetchLeaderboard(date: date);
 }

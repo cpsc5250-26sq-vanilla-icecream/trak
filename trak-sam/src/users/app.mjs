@@ -34,12 +34,13 @@ async function upsertUser(event) {
 
   const resolvedUsername = username ?? prev.username;
   const resolvedAvatarUrl = avatarUrl ?? prev.avatarUrl;
+  const resolvedDisplayName = displayName ?? prev.displayName;
 
   const user = {
     userId,
     ...(resolvedUsername && { username: resolvedUsername }),
     ...(resolvedAvatarUrl && { avatarUrl: resolvedAvatarUrl }),
-    displayName: displayName ?? prev.displayName ?? "",
+    ...(resolvedDisplayName && { displayName: resolvedDisplayName }),
     colorScheme: colorScheme ?? prev.colorScheme ?? "default",
     font: font ?? prev.font ?? "default",
     points: prev.points ?? 0,

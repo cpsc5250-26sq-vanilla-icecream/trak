@@ -4,6 +4,7 @@ import 'package:amplify_flutter/amplify_flutter.dart' hide UserProfile;
 import 'package:http/http.dart' as http;
 import '../auth/jwt_utils.dart';
 import '../models/friend.dart';
+import '../models/friend_request.dart';
 import '../models/inventory_item.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/use_item_result.dart';
@@ -96,11 +97,13 @@ class CloudRepository {
     _check(response, 'setUsername');
   }
 
-  Future<List<LeaderboardEntry>> fetchLeaderboard() async {
-    final response = await _client.get(
-      Uri.parse('$_base/leaderboard'),
-      headers: await _headers(),
-    );
+  Future<List<LeaderboardEntry>> fetchLeaderboard({String? date}) async {
+    final uri = date != null
+        ? Uri.parse(
+            '$_base/leaderboard',
+          ).replace(queryParameters: {'date': date})
+        : Uri.parse('$_base/leaderboard');
+    final response = await _client.get(uri, headers: await _headers());
     _check(response, 'fetchLeaderboard');
     final list = jsonDecode(response.body) as List<dynamic>;
     return list
@@ -161,5 +164,33 @@ class CloudRepository {
       headers: await _headers(),
     );
     _check(response, 'removeFriend');
+  }
+
+  Future<List<FriendRequest>> fetchFriendRequests() async {
+    final response = await _client.get(
+      Uri.parse('$_base/friends/requests'),
+      headers: await _headers(),
+    );
+    _check(response, 'fetchFriendRequests');
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => FriendRequest.fromCloud(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> acceptFriendRequest(String fromUserId) async {
+    final response = await _client.post(
+      Uri.parse('$_base/friends/requests/$fromUserId/accept'),
+      headers: await _headers(),
+    );
+    _check(response, 'acceptFriendRequest');
+  }
+
+  Future<void> declineFriendRequest(String fromUserId) async {
+    final response = await _client.delete(
+      Uri.parse('$_base/friends/requests/$fromUserId'),
+      headers: await _headers(),
+    );
+    _check(response, 'declineFriendRequest');
   }
 }

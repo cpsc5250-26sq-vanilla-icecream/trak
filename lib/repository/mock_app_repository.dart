@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import '../models/friend.dart';
+import '../models/friend_request.dart';
 import '../utils/points_utils.dart';
 import 'app_repository.dart';
 import '../models/leaderboard_entry.dart';
@@ -23,6 +24,7 @@ class MockAppRepository implements AppRepository {
   var _leaderboard = _initialLeaderboard();
   var _inventory = _initialInventory();
   var _friends = _initialFriends();
+  var _pendingRequests = _initialFriendRequests();
 
   late final Timer _tickTimer;
 
@@ -140,6 +142,53 @@ class MockAppRepository implements AppRepository {
   }
 
   @override
+  Future<List<FriendRequest>> getFriendRequests() async => _pendingRequests;
+
+  @override
+  Future<void> acceptFriendRequest(String fromUserId) async {
+    final req = _pendingRequests
+        .where((r) => r.fromUserId == fromUserId)
+        .firstOrNull;
+    _pendingRequests = _pendingRequests
+        .where((r) => r.fromUserId != fromUserId)
+        .toList();
+    if (req == null) return;
+
+    _friends = [
+      ..._friends,
+      Friend(
+        userId: _currentUserId,
+        friendId: req.fromUserId,
+        username: req.fromUsername,
+        displayName: req.fromDisplayName,
+        createdAt: DateTime.now().toIso8601String(),
+      ),
+    ];
+    _friendsController.add(_friends);
+
+    final newEntry = LeaderboardEntry(
+      userId: req.fromUserId,
+      username: req.fromUsername,
+      totalPoints: Random().nextInt(3000) + 500,
+      rank: 0,
+    );
+    _leaderboard = _rerank([..._leaderboard, newEntry]);
+    _leaderboardController.add(_leaderboard);
+  }
+
+  @override
+  Future<void> declineFriendRequest(String fromUserId) async {
+    _pendingRequests = _pendingRequests
+        .where((r) => r.fromUserId != fromUserId)
+        .toList();
+  }
+
+  @override
+  Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(
+    String date,
+  ) async => [];
+
+  @override
   Future<void> removeFriend(String targetUserId) async {
     _leaderboard = _leaderboard.where((e) => e.userId != targetUserId).toList();
     _leaderboardController.add(_leaderboard);
@@ -223,6 +272,16 @@ class MockAppRepository implements AppRepository {
     yield _friends;
     yield* _friendsController.stream;
   }
+
+  static List<FriendRequest> _initialFriendRequests() => [
+    FriendRequest(
+      fromUserId: 'user-005',
+      fromUsername: 'bob_runs',
+      fromDisplayName: 'Bob',
+      fromAvatarUrl: null,
+      createdAt: '2026-05-27T10:00:00Z',
+    ),
+  ];
 
   static List<Friend> _initialFriends() => [
     Friend(

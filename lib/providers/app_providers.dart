@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_notifier.dart';
 import '../models/friend.dart';
+import '../models/friend_request.dart';
 import '../models/leaderboard_entry.dart';
 import '../models/inventory_item.dart';
 import '../models/user_profile.dart';
@@ -64,12 +65,22 @@ final leaderboardProvider = StreamProvider<List<LeaderboardEntry>>(
   (ref) => ref.watch(repositoryProvider).watchLeaderboard(),
 );
 
+final historicalLeaderboardProvider =
+    FutureProvider.family<List<LeaderboardEntry>, String>(
+      (ref, date) =>
+          ref.watch(repositoryProvider).fetchHistoricalLeaderboard(date),
+    );
+
 final inventoryProvider = StreamProvider<List<InventoryItem>>(
   (ref) => ref.watch(repositoryProvider).watchInventory(),
 );
 
 final friendsProvider = StreamProvider<List<Friend>>(
   (ref) => ref.watch(repositoryProvider).watchFriends(),
+);
+
+final friendRequestsProvider = FutureProvider<List<FriendRequest>>(
+  (ref) => ref.watch(repositoryProvider).getFriendRequests(),
 );
 
 final stepCountProvider = StreamProvider<int>(

@@ -20,7 +20,7 @@ class AppDatabase {
   static Future<AppDatabase> openInMemory() async {
     final db = await openDatabase(
       inMemoryDatabasePath,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -41,7 +41,7 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -52,6 +52,7 @@ class AppDatabase {
     CREATE TABLE leaderboard_cache (
       user_id TEXT PRIMARY KEY,
       username TEXT NOT NULL,
+      display_name TEXT,
       avatar_url TEXT,
       points INTEGER NOT NULL,
       rank INTEGER NOT NULL,
@@ -105,6 +106,11 @@ class AppDatabase {
     int newVersion,
   ) async {
     if (oldVersion < 2) await _createFriendsTable(db);
+    if (oldVersion < 3) {
+      await db.execute(
+        'ALTER TABLE leaderboard_cache ADD COLUMN display_name TEXT',
+      );
+    }
   }
 
   Future<void> replaceLeaderboard(List<LeaderboardEntry> entries) async {

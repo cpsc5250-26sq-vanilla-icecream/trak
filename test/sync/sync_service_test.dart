@@ -40,7 +40,8 @@ class _FakeCloud extends CloudRepository {
   }
 
   @override
-  Future<List<LeaderboardEntry>> fetchLeaderboard() async => leaderboard;
+  Future<List<LeaderboardEntry>> fetchLeaderboard({String? date}) async =>
+      leaderboard;
 
   @override
   Future<List<Friend>> fetchFriends() async => [];

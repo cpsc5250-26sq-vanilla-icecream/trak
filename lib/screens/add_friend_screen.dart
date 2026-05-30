@@ -17,6 +17,12 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   String? _successName;
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => ref.invalidate(friendRequestsProvider));
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -102,7 +108,7 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
                         width: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Add Friend'),
+                    : const Text('Send Request'),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
@@ -113,12 +119,21 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
               ],
               if (_successName != null) ...[
                 const SizedBox(height: 12),
-                Text('$_successName added!'),
+                Text('Request sent to $_successName!'),
               ],
               const SizedBox(height: 24),
               Center(
                 child: Text(
-                  "Your Friends",
+                  'Pending Requests',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const _FriendRequestList(),
+              const SizedBox(height: 24),
+              Center(
+                child: Text(
+                  'Your Friends',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
@@ -127,6 +142,83 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _FriendRequestList extends ConsumerWidget {
+  const _FriendRequestList();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final requestsAsync = ref.watch(friendRequestsProvider);
+    return requestsAsync.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (error, _) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(error.toString()),
+      ),
+      data: (requests) {
+        if (requests.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(
+              'No pending requests',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          );
+        }
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final req = requests[index];
+            return ListTile(
+              leading: const CircleAvatar(
+                child: Icon(Icons.person_add_rounded),
+              ),
+              title: Text(req.fromDisplayName ?? req.fromUsername),
+              subtitle: Text('@${req.fromUsername}'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.check_circle_rounded),
+                    color: Colors.green,
+                    tooltip: 'Accept',
+                    onPressed: () async {
+                      await ref
+                          .read(repositoryProvider)
+                          .acceptFriendRequest(req.fromUserId);
+                      ref.invalidate(friendRequestsProvider);
+                      ref.invalidate(friendsProvider);
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.cancel_rounded),
+                    color: Theme.of(context).colorScheme.error,
+                    tooltip: 'Decline',
+                    onPressed: () async {
+                      await ref
+                          .read(repositoryProvider)
+                          .declineFriendRequest(req.fromUserId);
+                      ref.invalidate(friendRequestsProvider);
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -152,7 +244,7 @@ class _FriendList extends ConsumerWidget {
           return Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              "No friends yet :(",
+              'No friends yet :(',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           );
@@ -173,6 +265,43 @@ class _FriendList extends ConsumerWidget {
               subtitle: friend.username != null
                   ? Text('@${friend.username}')
                   : null,
+              trailing: IconButton(
+                icon: const Icon(Icons.person_remove_rounded),
+                color: Theme.of(context).colorScheme.error,
+                tooltip: 'Remove friend',
+                onPressed: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Remove friend?'),
+                      content: Text(
+                        'Remove ${friend.displayName ?? friend.username ?? friend.friendId}?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          child: Text(
+                            'Remove',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true) {
+                    await ref
+                        .read(repositoryProvider)
+                        .removeFriend(friend.friendId);
+                    ref.invalidate(friendsProvider);
+                  }
+                },
+              ),
             );
           },
         );
