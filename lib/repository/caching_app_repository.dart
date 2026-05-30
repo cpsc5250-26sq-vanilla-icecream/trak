@@ -54,8 +54,12 @@ class CachingAppRepository implements AppRepository {
   @override
   Future<void> removeFriend(String friendId) async {
     await _cloud.removeFriend(friendId);
-    final friends = await _cloud.fetchFriends();
-    await _cache.pushFriends(friends);
+    final results = await Future.wait([
+      _cloud.fetchFriends(),
+      _cloud.fetchLeaderboard(),
+    ]);
+    await _cache.pushFriends(results[0] as List<Friend>);
+    await _cache.pushLeaderboard(results[1] as List<LeaderboardEntry>);
   }
 
   @override
@@ -71,8 +75,12 @@ class CachingAppRepository implements AppRepository {
   @override
   Future<void> acceptFriendRequest(String fromUserId) async {
     await _cloud.acceptFriendRequest(fromUserId);
-    final friends = await _cloud.fetchFriends();
-    await _cache.pushFriends(friends);
+    final results = await Future.wait([
+      _cloud.fetchFriends(),
+      _cloud.fetchLeaderboard(),
+    ]);
+    await _cache.pushFriends(results[0] as List<Friend>);
+    await _cache.pushLeaderboard(results[1] as List<LeaderboardEntry>);
   }
 
   @override
