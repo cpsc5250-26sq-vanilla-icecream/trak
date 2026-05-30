@@ -4,6 +4,7 @@ import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCom
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const USERS_TABLE = process.env.USERS_TABLE;
 const STEPS_TABLE = process.env.STEPS_TABLE;
+const INVENTORY_TABLE = process.env.INVENTORY_TABLE;
 
 const POINTS_PER_STEP = 1 / 100; // 100 steps = 1 point
 
@@ -15,6 +16,21 @@ const res = (statusCode, body) => ({
 
 const getUserId = (event) => event.requestContext.authorizer.jwt.claims.sub;
 const stepsToPoints = (steps) => Math.floor(steps * POINTS_PER_STEP);
+
+function generateItem(userId) {
+  const type = Math.random() < 0.5 ? "powerup" : "attack";
+  return {
+    userId,
+    itemId: `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: type === "powerup" ? "Point Boost" : "Point Drain",
+    description: type === "powerup"
+      ? "Boost your points by 250."
+      : "Drain a friend's points by 250.",
+    type,
+    expiresAt: 253402300800000,
+    createdAt: new Date().toISOString(),
+  };
+}
 
 async function submitSteps(event) {
   const userId = getUserId(event);
@@ -46,6 +62,12 @@ async function submitSteps(event) {
       UpdateExpression: "SET points = if_not_exists(points, :zero) + :delta, updatedAt = :now",
       ExpressionAttributeValues: { ":delta": pointDelta, ":zero": 0, ":now": now },
     }));
+  }
+
+  if (Math.floor(newPoints / 50) > Math.floor(prevPoints / 50)) {
+    if (Math.random() < 0.5) {
+      await ddb.send(new PutCommand({ TableName: INVENTORY_TABLE, Item: generateItem(userId) }));
+    }
   }
 
   return res(200, { userId, date: today, stepCount, adjustments, points: newPoints });
