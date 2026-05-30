@@ -63,9 +63,16 @@ class CachingAppRepository implements AppRepository {
   }
 
   @override
-  Future<UseItemResult> useItem(String itemId, String targetUserId) {
-    // TODO: implement useItem
-    throw UnimplementedError();
+  Future<UseItemResult> useItem(String itemId, String targetUserId) async {
+    final result = await _cloud.useItem(itemId, targetUserId);
+    if (!result.success) return result;
+    final refreshed = await Future.wait([
+      _cloud.fetchInventory(),
+      _cloud.fetchLeaderboard(),
+    ]);
+    await _cache.pushInventory(refreshed[0] as List<InventoryItem>);
+    await _cache.pushLeaderboard(refreshed[1] as List<LeaderboardEntry>);
+    return result;
   }
 
   @override

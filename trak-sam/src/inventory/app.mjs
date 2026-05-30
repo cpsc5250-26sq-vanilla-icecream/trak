@@ -5,6 +5,7 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const INVENTORY_TABLE = process.env.INVENTORY_TABLE;
 const USERS_TABLE = process.env.USERS_TABLE;
 const STEPS_TABLE = process.env.STEPS_TABLE;
+const FRIENDS_TABLE = process.env.FRIENDS_TABLE;
 
 const stepsToPoints = (steps) => Math.floor(steps / 100);
 
@@ -49,6 +50,20 @@ async function useItem(event) {
   const adjustmentDelta = POINT_DELTA[type];
   if (adjustmentDelta === undefined) {
     return res(400, { message: `Unknown item type: ${type}` });
+  }
+
+  if (type === "powerup" && targetUserId !== userId) {
+    return res(403, { message: "Powerup items can only be used on yourself" });
+  }
+
+  if (type === "attack") {
+    const friendCheck = await ddb.send(new GetCommand({
+      TableName: FRIENDS_TABLE,
+      Key: { userId, friendId: targetUserId },
+    }));
+    if (!friendCheck.Item) {
+      return res(403, { message: "Target must be on your friends list" });
+    }
   }
 
   const today = new Date().toISOString().split("T")[0];

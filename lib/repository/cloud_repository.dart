@@ -141,7 +141,7 @@ class CloudRepository {
       headers: await _headers(),
       body: jsonEncode({'itemId': itemId, 'targetUserId': targetUserId}),
     );
-    if (response.statusCode == 404) {
+    if (response.statusCode == 403 || response.statusCode == 404) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       return UseItemResult.failure(body['message'] as String);
     }
