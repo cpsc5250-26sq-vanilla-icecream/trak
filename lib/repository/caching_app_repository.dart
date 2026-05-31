@@ -1,3 +1,5 @@
+import 'package:amplify_flutter/amplify_flutter.dart' show safePrint;
+
 import '../models/friend.dart';
 import '../models/friend_request.dart';
 import '../models/inventory_item.dart';
@@ -66,12 +68,16 @@ class CachingAppRepository implements AppRepository {
   Future<UseItemResult> useItem(String itemId, String targetUserId) async {
     final result = await _cloud.useItem(itemId, targetUserId);
     if (!result.success) return result;
-    final refreshed = await Future.wait([
-      _cloud.fetchInventory(),
-      _cloud.fetchLeaderboard(),
+    await Future.wait([
+      _cloud
+          .fetchInventory()
+          .then(_cache.pushInventory)
+          .catchError((e) => safePrint('useItem: inventory refresh failed: $e')),
+      _cloud
+          .fetchLeaderboard()
+          .then(_cache.pushLeaderboard)
+          .catchError((e) => safePrint('useItem: leaderboard refresh failed: $e')),
     ]);
-    await _cache.pushInventory(refreshed[0] as List<InventoryItem>);
-    await _cache.pushLeaderboard(refreshed[1] as List<LeaderboardEntry>);
     return result;
   }
 
