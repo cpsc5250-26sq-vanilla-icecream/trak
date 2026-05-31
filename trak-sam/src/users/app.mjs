@@ -43,7 +43,6 @@ async function upsertUser(event) {
     ...(resolvedDisplayName && { displayName: resolvedDisplayName }),
     colorScheme: colorScheme ?? prev.colorScheme ?? "default",
     font: font ?? prev.font ?? "default",
-    points: prev.points ?? 0,
     createdAt: prev.createdAt ?? now,
     updatedAt: now,
   };
@@ -63,8 +62,8 @@ async function getUser(event) {
   const { userId } = event.pathParameters;
   const result = await ddb.send(new GetCommand({ TableName: USERS_TABLE, Key: { userId } }));
   if (!result.Item) return res(404, { message: "User not found" });
-  const { userId: id, username, displayName, avatarUrl, colorScheme, font, points } = result.Item;
-  return res(200, { userId: id, username, displayName, avatarUrl, colorScheme, font, points });
+  const { userId: id, username, displayName, avatarUrl, colorScheme, font } = result.Item;
+  return res(200, { userId: id, username, displayName, avatarUrl, colorScheme, font });
 }
 
 export const handler = async (event) => {

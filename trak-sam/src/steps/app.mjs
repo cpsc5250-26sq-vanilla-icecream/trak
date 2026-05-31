@@ -1,8 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
-const USERS_TABLE = process.env.USERS_TABLE;
 const STEPS_TABLE = process.env.STEPS_TABLE;
 const INVENTORY_TABLE = process.env.INVENTORY_TABLE;
 
@@ -24,8 +23,8 @@ function generateItem(userId) {
     itemId: `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: type === "powerup" ? "Point Boost" : "Point Drain",
     description: type === "powerup"
-      ? "Boost your points by 250."
-      : "Drain a friend's points by 250.",
+      ? "Boost your points by 7."
+      : "Drain a friend's points by 7.",
     type,
     expiresAt: 253402300800000,
     createdAt: new Date().toISOString(),
@@ -44,27 +43,17 @@ async function submitSteps(event) {
   const now = new Date().toISOString();
 
   const existing = await ddb.send(new GetCommand({ TableName: STEPS_TABLE, Key: { userId, date: today } }));
-  const resolvedStepCount = Math.max(stepCount, existing.Item?.stepCount ?? 0);
+  const prevStepCount = existing.Item?.stepCount ?? 0;
+  const resolvedStepCount = Math.max(stepCount, prevStepCount);
   const adjustments = existing.Item?.adjustments ?? 0;
-  const prevPoints = existing.Item?.points ?? 0;
   const newPoints = Math.max(0, stepsToPoints(resolvedStepCount) + adjustments);
-  const pointDelta = newPoints - prevPoints;
 
   await ddb.send(new PutCommand({
     TableName: STEPS_TABLE,
     Item: { userId, date: today, stepCount: resolvedStepCount, adjustments, points: newPoints, createdAt: existing.Item?.createdAt ?? now, updatedAt: now },
   }));
 
-  if (pointDelta !== 0) {
-    await ddb.send(new UpdateCommand({
-      TableName: USERS_TABLE,
-      Key: { userId },
-      UpdateExpression: "SET points = if_not_exists(points, :zero) + :delta, updatedAt = :now",
-      ExpressionAttributeValues: { ":delta": pointDelta, ":zero": 0, ":now": now },
-    }));
-  }
-
-  if (Math.floor(newPoints / 50) > Math.floor(prevPoints / 50)) {
+  if (Math.floor(resolvedStepCount / 500) > Math.floor(prevStepCount / 500)) {
     if (Math.random() < 0.5) {
       await ddb.send(new PutCommand({ TableName: INVENTORY_TABLE, Item: generateItem(userId) }));
     }

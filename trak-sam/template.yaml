@@ -183,8 +183,6 @@ Resources:
       Handler: app.handler
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-        - DynamoDBCrudPolicy:
             TableName: !Ref StepsTable
         - DynamoDBCrudPolicy:
             TableName: !Ref InventoryTable
@@ -282,8 +280,6 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref InventoryTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:
             TableName: !Ref StepsTable
         - DynamoDBReadPolicy:

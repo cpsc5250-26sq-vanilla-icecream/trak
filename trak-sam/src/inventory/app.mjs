@@ -3,13 +3,12 @@ import { DynamoDBDocumentClient, DeleteCommand, GetCommand, PutCommand, QueryCom
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const INVENTORY_TABLE = process.env.INVENTORY_TABLE;
-const USERS_TABLE = process.env.USERS_TABLE;
 const STEPS_TABLE = process.env.STEPS_TABLE;
 const FRIENDS_TABLE = process.env.FRIENDS_TABLE;
 
 const stepsToPoints = (steps) => Math.floor(steps / 100);
 
-const POINT_DELTA = { powerup: 250, attack: -250 };
+const POINT_DELTA = { powerup: 7, attack: -7 };
 
 const res = (statusCode, body) => ({
   statusCode,
@@ -103,14 +102,6 @@ async function useItem(event) {
             createdAt: existing?.createdAt ?? now,
             updatedAt: now,
           },
-        },
-      },
-      {
-        Update: {
-          TableName: USERS_TABLE,
-          Key: { userId: targetUserId },
-          UpdateExpression: "SET points = if_not_exists(points, :zero) + :delta, updatedAt = :now",
-          ExpressionAttributeValues: { ":delta": pointDelta, ":zero": 0, ":now": now },
         },
       },
     ],
