@@ -25,7 +25,8 @@ async function getInventory(event) {
     KeyConditionExpression: "userId = :uid",
     ExpressionAttributeValues: { ":uid": userId },
   }));
-  return res(200, result.Items ?? []);
+  const now = Date.now();
+  return res(200, (result.Items ?? []).filter((item) => item.expiresAt > now));
 }
 
 async function useItem(event) {
@@ -43,6 +44,9 @@ async function useItem(event) {
 
   if (!itemResult.Item) {
     return res(404, { message: "Item not found" });
+  }
+  if (itemResult.Item.expiresAt <= Date.now()) {
+    return res(404, { message: "Item has expired" });
   }
 
   const { type } = itemResult.Item;

@@ -16,6 +16,12 @@ const res = (statusCode, body) => ({
 const getUserId = (event) => event.requestContext.authorizer.jwt.claims.sub;
 const stepsToPoints = (steps) => Math.floor(steps * POINTS_PER_STEP);
 
+function endOfDayMs() {
+  const d = new Date();
+  d.setUTCHours(23, 59, 59, 999);
+  return d.getTime();
+}
+
 function generateItem(userId) {
   const type = Math.random() < 0.5 ? "powerup" : "attack";
   return {
@@ -26,7 +32,7 @@ function generateItem(userId) {
       ? "Boost your points by 7."
       : "Drain a friend's points by 7.",
     type,
-    expiresAt: 253402300800000,
+    expiresAt: endOfDayMs(),
     createdAt: new Date().toISOString(),
   };
 }
