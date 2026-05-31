@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trak/service/local_notification_service.dart';
 import 'package:trak/service/push_notification_service.dart';
 import 'auth/amplify_config.dart';
+import 'background/step_sync_task.dart';
 import 'router/app_router.dart';
 
 Future<void> main() async {
@@ -16,6 +17,7 @@ Future<void> main() async {
   await Firebase.initializeApp();
   await PushNotificationService.initialize();
   await _configureAmplify();
+  await initStepSyncTask();
   runApp(const ProviderScope(child: TrakApp()));
 }
 
