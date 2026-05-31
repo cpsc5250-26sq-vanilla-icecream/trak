@@ -72,11 +72,15 @@ class CachingAppRepository implements AppRepository {
       _cloud
           .fetchInventory()
           .then(_cache.pushInventory)
-          .catchError((e) => safePrint('useItem: inventory refresh failed: $e')),
+          .catchError(
+            (e) => safePrint('useItem: inventory refresh failed: $e'),
+          ),
       _cloud
           .fetchLeaderboard()
           .then(_cache.pushLeaderboard)
-          .catchError((e) => safePrint('useItem: leaderboard refresh failed: $e')),
+          .catchError(
+            (e) => safePrint('useItem: leaderboard refresh failed: $e'),
+          ),
     ]);
     return result;
   }
