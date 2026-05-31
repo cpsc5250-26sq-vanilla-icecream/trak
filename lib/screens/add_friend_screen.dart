@@ -35,7 +35,6 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
   Future<void> _submit() async {
     final username = _controller.text.trim();
     if (username.isEmpty) return;
-
     setState(() {
       _loading = true;
       _error = null;
@@ -44,11 +43,8 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
     try {
       await ref.read(repositoryProvider).addFriend(username);
-
       if (!mounted) return;
-
       ref.invalidate(friendsProvider);
-
       setState(() {
         _successName = username;
         _loading = false;
@@ -56,7 +52,6 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -117,7 +112,6 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
 
 class _SectionTitle extends StatelessWidget {
   final String title;
-
   const _SectionTitle(this.title);
 
   @override
