@@ -230,6 +230,7 @@ class _FriendRequestTile extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.check_circle_rounded),
             color: Colors.green,
+            tooltip: 'Accept',
             onPressed: () async {
               await ref
                   .read(repositoryProvider)
@@ -242,6 +243,7 @@ class _FriendRequestTile extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.cancel_rounded),
             color: Theme.of(context).colorScheme.error,
+            tooltip: 'Decline',
             onPressed: () async {
               await ref
                   .read(repositoryProvider)
@@ -303,6 +305,7 @@ class _FriendTile extends ConsumerWidget {
       trailing: IconButton(
         icon: const Icon(Icons.person_remove_rounded),
         color: Theme.of(context).colorScheme.error,
+        tooltip: 'Remove friend',
         onPressed: () async {
           final confirmed = await _confirmRemoveFriend(
             context,
