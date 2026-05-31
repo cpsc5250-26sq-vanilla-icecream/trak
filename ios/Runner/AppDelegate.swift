@@ -1,6 +1,6 @@
 import Flutter
 import UIKit
-import workmanager
+import workmanager_apple
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -8,7 +8,7 @@ import workmanager
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    WorkmanagerPlugin.registerTask(withIdentifier: "be.tramckrijte.workmanager.iOSBackgroundAppRefresh")
+    WorkmanagerPlugin.registerPeriodicTask(withIdentifier: "be.tramckrijte.workmanager.iOSBackgroundAppRefresh", frequency: nil)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
