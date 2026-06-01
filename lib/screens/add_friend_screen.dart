@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/friend.dart';
+import '../models/friend_request.dart';
 import '../providers/app_providers.dart';
 import 'qr_friend_sheet.dart';
 
@@ -11,51 +14,31 @@ class AddFriendScreen extends ConsumerStatefulWidget {
 }
 
 class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
-  final _controller = TextEditingController();
-  bool _loading = false;
-  String? _error;
-  String? _successName;
+  late final _AddFriendController _friend;
 
   @override
   void initState() {
     super.initState();
+    _friend = _AddFriendController(ref);
     Future.microtask(() => ref.invalidate(friendRequestsProvider));
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _friend.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    final username = _controller.text.trim();
-    if (username.isEmpty) return;
-
-    setState(() {
-      _loading = true;
-      _error = null;
-      _successName = null;
-    });
-
-    try {
-      await ref.read(repositoryProvider).addFriend(username);
-      if (mounted) {
-        ref.invalidate(friendsProvider);
-        setState(() {
-          _successName = username;
-          _loading = false;
-          _controller.clear();
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _loading = false;
-        });
-      }
-    }
+  void _showQrSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => QrFriendSheet(
+        onScanned: (username) {
+          _friend.controller.text = username;
+          _friend.submit(() => mounted ? setState(() {}) : null);
+        },
+      ),
+    );
   }
 
   @override
@@ -65,83 +48,141 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
         title: const Text('Add Friend'),
         actions: [
           IconButton(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (_) => QrFriendSheet(
-                  onScanned: (username) {
-                    _controller.text = username;
-                    _submit();
-                  },
-                ),
-              );
-            },
+            onPressed: _showQrSheet,
             icon: const Icon(Icons.qr_code_rounded),
             iconSize: 32,
           ),
         ],
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextField(
-                controller: _controller,
-                decoration: const InputDecoration(
-                  labelText: 'Username',
-                  hintText: 'Enter a username',
-                  border: OutlineInputBorder(),
-                ),
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _submit(),
-                enabled: !_loading,
-                autofocus: true,
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: _loading ? null : _submit,
-                child: _loading
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Send Request'),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-              if (_successName != null) ...[
-                const SizedBox(height: 12),
-                Text('Request sent to $_successName!'),
-              ],
-              const SizedBox(height: 24),
-              Center(
-                child: Text(
-                  'Pending Requests',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const _FriendRequestList(),
-              const SizedBox(height: 24),
-              Center(
-                child: Text(
-                  'Your Friends',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              const _FriendList(),
-            ],
-          ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _AddFriendForm(
+              controller: _friend.controller,
+              loading: _friend.loading,
+              error: _friend.error,
+              successName: _friend.successName,
+              onSubmit: () =>
+                  _friend.submit(() => mounted ? setState(() {}) : null),
+            ),
+            const SizedBox(height: 24),
+            const _SectionTitle('Pending Requests'),
+            const SizedBox(height: 8),
+            const _FriendRequestList(),
+            const SizedBox(height: 24),
+            const _SectionTitle('Your Friends'),
+            const _FriendList(),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _AddFriendController {
+  final WidgetRef ref;
+  final controller = TextEditingController();
+
+  bool loading = false;
+  String? error;
+  String? successName;
+
+  _AddFriendController(this.ref);
+
+  Future<void> submit(VoidCallback refresh) async {
+    final username = controller.text.trim();
+    if (username.isEmpty) return;
+
+    loading = true;
+    error = null;
+    successName = null;
+    refresh();
+
+    try {
+      await ref.read(repositoryProvider).addFriend(username);
+
+      ref.invalidate(friendsProvider);
+      successName = username;
+      controller.clear();
+    } catch (e) {
+      error = e.toString();
+    }
+
+    loading = false;
+    refresh();
+  }
+
+  void dispose() => controller.dispose();
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  const _SectionTitle(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+    );
+  }
+}
+
+class _AddFriendForm extends StatelessWidget {
+  final TextEditingController controller;
+  final bool loading;
+  final String? error;
+  final String? successName;
+  final VoidCallback onSubmit;
+
+  const _AddFriendForm({
+    required this.controller,
+    required this.loading,
+    required this.error,
+    required this.successName,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Username',
+            hintText: 'Enter a username',
+            border: OutlineInputBorder(),
+          ),
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => onSubmit(),
+          enabled: !loading,
+          autofocus: true,
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          onPressed: loading ? null : onSubmit,
+          child: loading
+              ? const SizedBox(
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Send Request'),
+        ),
+        if (error != null) ...[
+          const SizedBox(height: 12),
+          Text(
+            error!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ],
+        if (successName != null) ...[
+          const SizedBox(height: 12),
+          Text('Request sent to $successName!'),
+        ],
+      ],
     );
   }
 }
@@ -152,101 +193,97 @@ class _FriendRequestList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final requestsAsync = ref.watch(friendRequestsProvider);
+
     return requestsAsync.when(
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: CircularProgressIndicator(),
-        ),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
       ),
-      error: (error, _) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Text(error.toString()),
-      ),
+      error: (e, _) =>
+          Padding(padding: const EdgeInsets.all(16), child: Text(e.toString())),
       data: (requests) {
         if (requests.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text(
-              'No pending requests',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Text('No pending requests'),
           );
         }
+
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: requests.length,
-          itemBuilder: (context, index) {
-            final req = requests[index];
-            return ListTile(
-              leading: const CircleAvatar(
-                child: Icon(Icons.person_add_rounded),
-              ),
-              title: Text(req.fromDisplayName ?? req.fromUsername),
-              subtitle: Text('@${req.fromUsername}'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.check_circle_rounded),
-                    color: Colors.green,
-                    tooltip: 'Accept',
-                    onPressed: () async {
-                      await ref
-                          .read(repositoryProvider)
-                          .acceptFriendRequest(req.fromUserId);
-                      ref.invalidate(friendRequestsProvider);
-                      ref.invalidate(friendsProvider);
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.cancel_rounded),
-                    color: Theme.of(context).colorScheme.error,
-                    tooltip: 'Decline',
-                    onPressed: () async {
-                      await ref
-                          .read(repositoryProvider)
-                          .declineFriendRequest(req.fromUserId);
-                      ref.invalidate(friendRequestsProvider);
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
+          itemBuilder: (_, index) => _FriendRequestTile(requests[index]),
         );
       },
     );
   }
 }
 
+class _FriendRequestTile extends ConsumerWidget {
+  final FriendRequest request;
+
+  const _FriendRequestTile(this.request);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListTile(
+      leading: const CircleAvatar(child: Icon(Icons.person_add_rounded)),
+      title: Text(request.fromDisplayName ?? request.fromUsername),
+      subtitle: Text('@${request.fromUsername}'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.check_circle_rounded),
+            color: Colors.green,
+            tooltip: 'Accept',
+            onPressed: () async {
+              await ref
+                  .read(repositoryProvider)
+                  .acceptFriendRequest(request.fromUserId);
+
+              ref.invalidate(friendRequestsProvider);
+              ref.invalidate(friendsProvider);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.cancel_rounded),
+            color: Theme.of(context).colorScheme.error,
+            tooltip: 'Decline',
+            onPressed: () async {
+              await ref
+                  .read(repositoryProvider)
+                  .declineFriendRequest(request.fromUserId);
+
+              ref.invalidate(friendRequestsProvider);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FriendList extends ConsumerWidget {
   const _FriendList();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final friendsAsync = ref.watch(friendsProvider);
+
     return friendsAsync.when(
-      loading: () => const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: CircularProgressIndicator(),
-        ),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
       ),
-      error: (error, _) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(error.toString()),
-      ),
+      error: (e, _) =>
+          Padding(padding: const EdgeInsets.all(24), child: Text(e.toString())),
       data: (friends) {
         if (friends.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'No friends yet :(',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Text('No friends yet :('),
           );
         }
 
@@ -254,58 +291,65 @@ class _FriendList extends ConsumerWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: friends.length,
-          itemBuilder: (context, index) {
-            final friend = friends[index];
-
-            return ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.person_2_rounded)),
-              title: Text(
-                friend.displayName ?? friend.username ?? friend.friendId,
-              ),
-              subtitle: friend.username != null
-                  ? Text('@${friend.username}')
-                  : null,
-              trailing: IconButton(
-                icon: const Icon(Icons.person_remove_rounded),
-                color: Theme.of(context).colorScheme.error,
-                tooltip: 'Remove friend',
-                onPressed: () async {
-                  final confirmed = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: const Text('Remove friend?'),
-                      content: Text(
-                        'Remove ${friend.displayName ?? friend.username ?? friend.friendId}?',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(true),
-                          child: Text(
-                            'Remove',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (confirmed == true) {
-                    await ref
-                        .read(repositoryProvider)
-                        .removeFriend(friend.friendId);
-                    ref.invalidate(friendsProvider);
-                  }
-                },
-              ),
-            );
-          },
+          itemBuilder: (_, index) => _FriendTile(friends[index]),
         );
       },
     );
   }
+}
+
+class _FriendTile extends ConsumerWidget {
+  final Friend friend;
+
+  const _FriendTile(this.friend);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListTile(
+      leading: const CircleAvatar(child: Icon(Icons.person_2_rounded)),
+      title: Text(friend.displayName ?? friend.username ?? friend.friendId),
+      subtitle: friend.username != null ? Text('@${friend.username}') : null,
+      trailing: IconButton(
+        icon: const Icon(Icons.person_remove_rounded),
+        color: Theme.of(context).colorScheme.error,
+        tooltip: 'Remove friend',
+        onPressed: () async {
+          final confirmed = await _confirmRemoveFriend(
+            context,
+            friend.displayName ?? friend.username ?? friend.friendId,
+          );
+
+          if (confirmed) {
+            await ref.read(repositoryProvider).removeFriend(friend.friendId);
+
+            ref.invalidate(friendsProvider);
+          }
+        },
+      ),
+    );
+  }
+}
+
+Future<bool> _confirmRemoveFriend(BuildContext context, String name) async {
+  return await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Remove friend?'),
+          content: Text('Remove $name?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(
+                'Remove',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          ],
+        ),
+      ) ??
+      false;
 }
