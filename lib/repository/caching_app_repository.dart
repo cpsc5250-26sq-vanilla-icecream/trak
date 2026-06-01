@@ -37,6 +37,10 @@ class CachingAppRepository implements AppRepository {
   Future<UserProfile> getCurrentUser() => _cloud.getCurrentUser();
 
   @override
+  Future<void> updateDisplayName(String displayName) =>
+      _cloud.updateDisplayName(displayName);
+
+  @override
   Future<void> putSteps(int stepCount) async {
     await _cloud.submitSteps(stepCount);
     await _cache.putSteps(stepCount);
