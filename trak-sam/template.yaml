@@ -183,9 +183,9 @@ Resources:
       Handler: app.handler
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-        - DynamoDBCrudPolicy:
             TableName: !Ref StepsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref InventoryTable
       Events:
         SubmitSteps:
           Type: HttpApi
@@ -281,9 +281,9 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref InventoryTable
         - DynamoDBCrudPolicy:
-            TableName: !Ref UsersTable
-        - DynamoDBCrudPolicy:
             TableName: !Ref StepsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref FriendsTable
       Events:
         GetInventory:
           Type: HttpApi

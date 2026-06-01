@@ -3,12 +3,12 @@ import { DynamoDBDocumentClient, DeleteCommand, GetCommand, PutCommand, QueryCom
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const INVENTORY_TABLE = process.env.INVENTORY_TABLE;
-const USERS_TABLE = process.env.USERS_TABLE;
 const STEPS_TABLE = process.env.STEPS_TABLE;
+const FRIENDS_TABLE = process.env.FRIENDS_TABLE;
 
 const stepsToPoints = (steps) => Math.floor(steps / 100);
 
-const POINT_DELTA = { powerup: 250, attack: -250 };
+const POINT_DELTA = { powerup: 7, attack: -7 };
 
 const res = (statusCode, body) => ({
   statusCode,
@@ -25,7 +25,8 @@ async function getInventory(event) {
     KeyConditionExpression: "userId = :uid",
     ExpressionAttributeValues: { ":uid": userId },
   }));
-  return res(200, result.Items ?? []);
+  const now = Date.now();
+  return res(200, (result.Items ?? []).filter((item) => item.expiresAt > now));
 }
 
 async function useItem(event) {
@@ -44,11 +45,28 @@ async function useItem(event) {
   if (!itemResult.Item) {
     return res(404, { message: "Item not found" });
   }
+  if (itemResult.Item.expiresAt <= Date.now()) {
+    return res(404, { message: "Item has expired" });
+  }
 
   const { type } = itemResult.Item;
   const adjustmentDelta = POINT_DELTA[type];
   if (adjustmentDelta === undefined) {
     return res(400, { message: `Unknown item type: ${type}` });
+  }
+
+  if (type === "powerup" && targetUserId !== userId) {
+    return res(403, { message: "Powerup items can only be used on yourself" });
+  }
+
+  if (type === "attack") {
+    const friendCheck = await ddb.send(new GetCommand({
+      TableName: FRIENDS_TABLE,
+      Key: { userId, friendId: targetUserId },
+    }));
+    if (!friendCheck.Item) {
+      return res(403, { message: "Target must be on your friends list" });
+    }
   }
 
   const today = new Date().toISOString().split("T")[0];
@@ -88,14 +106,6 @@ async function useItem(event) {
             createdAt: existing?.createdAt ?? now,
             updatedAt: now,
           },
-        },
-      },
-      {
-        Update: {
-          TableName: USERS_TABLE,
-          Key: { userId: targetUserId },
-          UpdateExpression: "SET points = if_not_exists(points, :zero) + :delta, updatedAt = :now",
-          ExpressionAttributeValues: { ":delta": pointDelta, ":zero": 0, ":now": now },
         },
       },
     ],
