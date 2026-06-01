@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import '../providers/app_providers.dart';
+import '../widgets/add_friend/my_qr_code.dart';
 
 class QrFriendSheet extends ConsumerStatefulWidget {
   final void Function(String username) onScanned;
-
   const QrFriendSheet({super.key, required this.onScanned});
-
   @override
   ConsumerState<QrFriendSheet> createState() => _QrFriendSheetState();
 }
 
 class _QrFriendSheetState extends ConsumerState<QrFriendSheet> {
-  bool _showMyQr = false;
-  bool _scanned = false;
+  bool _showMyQr = false, _scanned = false;
   late final MobileScannerController _scanner;
 
   @override
@@ -41,11 +37,7 @@ class _QrFriendSheetState extends ConsumerState<QrFriendSheet> {
 
   void _toggleTab(bool showMyQr) {
     setState(() => _showMyQr = showMyQr);
-    if (showMyQr) {
-      _scanner.stop();
-    } else {
-      _scanner.start();
-    }
+    showMyQr ? _scanner.stop() : _scanner.start();
   }
 
   @override
@@ -72,7 +64,7 @@ class _QrFriendSheetState extends ConsumerState<QrFriendSheet> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: _showMyQr
-                    ? const _MyQrCode()
+                    ? const MyQrCode()
                     : MobileScanner(
                         controller: _scanner,
                         onDetect: _onDetect,
@@ -84,25 +76,6 @@ class _QrFriendSheetState extends ConsumerState<QrFriendSheet> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _MyQrCode extends ConsumerWidget {
-  const _MyQrCode();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(currentUserProvider);
-    return userAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text(e.toString())),
-      data: (user) {
-        if (user.username.isEmpty) {
-          return const Center(child: Text('Set a username first'));
-        }
-        return Center(child: QrImageView(data: user.username, size: 250));
-      },
     );
   }
 }
