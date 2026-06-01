@@ -38,7 +38,9 @@ class _InventoryTile extends ConsumerWidget {
     return Card(
       child: ListTile(
         leading: Icon(
-          item.type == ItemType.powerup ? Icons.arrow_upward : Icons.storm_rounded,
+          item.type == ItemType.powerup
+              ? Icons.arrow_upward
+              : Icons.storm_rounded,
         ),
         title: Text(item.name),
         subtitle: Text(item.description),
@@ -156,9 +158,7 @@ class _FriendSelector extends ConsumerWidget {
             .map(
               (friend) => DropdownMenuItem<String>(
                 value: friend.friendId,
-                child: Text(
-                  friend.username ?? friend.friendId,
-                ),
+                child: Text(friend.username ?? friend.friendId),
               ),
             )
             .toList(),
