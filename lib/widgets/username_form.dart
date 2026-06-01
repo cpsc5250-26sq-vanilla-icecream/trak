@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class UsernameForm extends StatelessWidget {
-  UsernameForm({
+  const UsernameForm({
     super.key,
     required this.controller,
     required this.formKey,
@@ -60,10 +60,10 @@ class UsernameForm extends StatelessWidget {
                 onPressed: loading ? null : onSubmit,
                 child: loading
                     ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Text('Continue'),
               ),
             ],
