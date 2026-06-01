@@ -12,6 +12,7 @@ abstract class AppRepository {
   Stream<List<Friend>> watchFriends();
   Future<UserProfile> getCurrentUser();
 
+  Future<void> updateDisplayName(String displayName);
   Future<void> putSteps(int stepCount);
   Future<UseItemResult> useItem(String itemId, String targetUserId);
   Future<void> addFriend(String username);
