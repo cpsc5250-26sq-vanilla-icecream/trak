@@ -11,36 +11,23 @@ class UsernameScreen extends ConsumerStatefulWidget {
 }
 
 class _UsernameScreenState extends ConsumerState<UsernameScreen> {
-  final _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _loading = false;
-  String? _serverError;
+  late final _UsernameController _username;
 
-  static final _validPattern = RegExp(r'^[a-zA-Z0-9_]{3,20}$');
+  @override
+  void initState() {
+    super.initState();
+    _username = _UsernameController(ref);
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _username.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    setState(() => _serverError = null);
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _loading = true);
-    try {
-      await ref
-          .read(cloudRepositoryProvider)
-          .setUsername(_controller.text.trim());
-      ref.invalidate(needsUsernameProvider);
-    } on UsernameAlreadyTakenException {
-      setState(() => _serverError = 'Username already taken');
-    } catch (_) {
-      setState(() => _serverError = 'Something went wrong. Please try again.');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  void _refresh() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -49,55 +36,117 @@ class _UsernameScreenState extends ConsumerState<UsernameScreen> {
       appBar: AppBar(title: const Text('Choose a username')),
       body: Padding(
         padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Pick a unique username. This will be your public identity in Trak.',
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _controller,
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                  hintText: 'letters, numbers, underscores',
-                  errorText: _serverError,
-                  border: const OutlineInputBorder(),
-                ),
-                autocorrect: false,
-                enableSuggestions: false,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _submit(),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Username is required';
-                  }
-                  if (!_validPattern.hasMatch(value.trim())) {
-                    return '3–20 characters: letters, numbers, and underscores only';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _loading ? null : _submit,
-                child: _loading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Continue'),
-              ),
-            ],
-          ),
+        child: _UsernameForm(
+          formKey: _formKey,
+          controller: _username,
+          onSubmit: () => _username.submit(_formKey, _refresh),
         ),
+      ),
+    );
+  }
+}
+
+class _UsernameController {
+  final WidgetRef ref;
+  final controller = TextEditingController();
+
+  bool loading = false;
+  String? serverError;
+
+  static final validPattern = RegExp(r'^[a-zA-Z0-9_]{3,20}$');
+
+  _UsernameController(this.ref);
+
+  Future<void> submit(
+    GlobalKey<FormState> formKey,
+    VoidCallback refresh,
+  ) async {
+    serverError = null;
+    refresh();
+
+    if (!formKey.currentState!.validate()) return;
+
+    loading = true;
+    refresh();
+
+    try {
+      await ref
+          .read(cloudRepositoryProvider)
+          .setUsername(controller.text.trim());
+
+      ref.invalidate(needsUsernameProvider);
+    } on UsernameAlreadyTakenException {
+      serverError = 'Username already taken';
+    } catch (_) {
+      serverError = 'Something went wrong. Please try again.';
+    }
+
+    loading = false;
+    refresh();
+  }
+
+  void dispose() => controller.dispose();
+}
+
+class _UsernameForm extends StatelessWidget {
+  final GlobalKey<FormState> formKey;
+  final _UsernameController controller;
+  final VoidCallback onSubmit;
+
+  const _UsernameForm({
+    required this.formKey,
+    required this.controller,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Pick a unique username. This will be your public identity in Trak.',
+            style: TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 24),
+          TextFormField(
+            controller: controller.controller,
+            decoration: InputDecoration(
+              labelText: 'Username',
+              hintText: 'letters, numbers, underscores',
+              errorText: controller.serverError,
+              border: const OutlineInputBorder(),
+            ),
+            autocorrect: false,
+            enableSuggestions: false,
+            textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) => onSubmit(),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Username is required';
+              }
+
+              if (!_UsernameController.validPattern.hasMatch(value.trim())) {
+                return '3–20 characters: letters, numbers, and underscores only';
+              }
+
+              return null;
+            },
+          ),
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: controller.loading ? null : onSubmit,
+            child: controller.loading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Continue'),
+          ),
+        ],
       ),
     );
   }

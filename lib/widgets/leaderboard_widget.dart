@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/leaderboard_entry.dart';
 import '../providers/app_providers.dart';
 
@@ -8,7 +9,6 @@ class LeaderboardWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final leaderboard = ref.watch(leaderboardProvider);
     final currentUserId = ref.watch(currentUserProvider).asData?.value.userId;
 
     return Column(
@@ -16,21 +16,34 @@ class LeaderboardWidget extends ConsumerWidget {
       children: [
         Text('Leaderboard', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        leaderboard.when(
-          data: (entries) => Column(
-            children: entries
-                .map(
-                  (e) => _LeaderboardRow(
-                    entry: e,
-                    isCurrentUser: e.userId == currentUserId,
-                  ),
-                )
-                .toList(),
-          ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Text('Error: $e'),
-        ),
+        _LeaderboardContent(currentUserId: currentUserId),
       ],
+    );
+  }
+}
+
+class _LeaderboardContent extends ConsumerWidget {
+  final String? currentUserId;
+
+  const _LeaderboardContent({required this.currentUserId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final leaderboard = ref.watch(leaderboardProvider);
+
+    return leaderboard.when(
+      data: (entries) => Column(
+        children: entries
+            .map(
+              (entry) => _LeaderboardRow(
+                entry: entry,
+                isCurrentUser: entry.userId == currentUserId,
+              ),
+            )
+            .toList(),
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Text('Error: $e'),
     );
   }
 }
@@ -56,7 +69,6 @@ class _LeaderboardRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final rankColor = _rankColor(entry.rank);
-    final isTopThree = entry.rank <= 3;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -73,69 +85,119 @@ class _LeaderboardRow extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: CircleAvatar(
-          radius: 18,
-          backgroundColor: rankColor,
+        leading: _RankAvatar(rank: entry.rank, color: rankColor),
+        title: _LeaderboardName(
+          name: entry.displayName ?? entry.username,
+          isCurrentUser: isCurrentUser,
+        ),
+        trailing: _PointsDisplay(points: entry.totalPoints),
+      ),
+    );
+  }
+}
+
+class _RankAvatar extends StatelessWidget {
+  final int rank;
+  final Color color;
+
+  const _RankAvatar({required this.rank, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final isTopThree = rank <= 3;
+
+    return CircleAvatar(
+      radius: 18,
+      backgroundColor: color,
+      child: Text(
+        '$rank',
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: isTopThree ? Colors.black87 : Colors.black54,
+        ),
+      ),
+    );
+  }
+}
+
+class _LeaderboardName extends StatelessWidget {
+  final String name;
+  final bool isCurrentUser;
+
+  const _LeaderboardName({required this.name, required this.isCurrentUser});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Flexible(
           child: Text(
-            '${entry.rank}',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isTopThree ? Colors.black87 : Colors.black54,
+            name,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ),
-        title: Row(
-          children: [
-            Flexible(
-              child: Text(
-                entry.displayName ?? entry.username,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: isCurrentUser
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (isCurrentUser) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'you',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '${entry.totalPoints}',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              'pts',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.outline,
-              ),
-            ),
-          ],
+        if (isCurrentUser) ...[const SizedBox(width: 6), const _YouBadge()],
+      ],
+    );
+  }
+}
+
+class _YouBadge extends StatelessWidget {
+  const _YouBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        'you',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onPrimary,
+          fontWeight: FontWeight.bold,
         ),
       ),
+    );
+  }
+}
+
+class _PointsDisplay extends StatelessWidget {
+  final int points;
+
+  const _PointsDisplay({required this.points});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          '$points',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          'pts',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.outline,
+          ),
+        ),
+      ],
     );
   }
 }
