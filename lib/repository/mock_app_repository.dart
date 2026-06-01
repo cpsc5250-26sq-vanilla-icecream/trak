@@ -84,6 +84,9 @@ class MockAppRepository implements AppRepository {
   );
 
   @override
+  Future<void> updateDisplayName(String displayName) async {}
+
+  @override
   Future<void> putSteps(int stepCount) async {
     _steps = stepCount;
     _stepController.add(_steps);

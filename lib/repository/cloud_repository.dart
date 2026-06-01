@@ -62,6 +62,15 @@ class CloudRepository {
     _check(response, 'upsertUser');
   }
 
+  Future<void> updateDisplayName(String displayName) async {
+    final response = await _client.post(
+      Uri.parse('$_base/users'),
+      headers: await _headers(),
+      body: jsonEncode({'displayName': displayName}),
+    );
+    _check(response, 'updateDisplayName');
+  }
+
   Future<void> submitSteps(int stepCount) async {
     final response = await _client.post(
       Uri.parse('$_base/steps'),
