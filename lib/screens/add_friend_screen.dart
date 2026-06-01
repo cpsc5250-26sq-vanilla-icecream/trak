@@ -14,49 +14,19 @@ class AddFriendScreen extends ConsumerStatefulWidget {
 }
 
 class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
-  final _controller = TextEditingController();
-
-  bool _loading = false;
-  String? _error;
-  String? _successName;
+  late final _AddFriendController _friend;
 
   @override
   void initState() {
     super.initState();
+    _friend = _AddFriendController(ref);
     Future.microtask(() => ref.invalidate(friendRequestsProvider));
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _friend.dispose();
     super.dispose();
-  }
-
-  Future<void> _submit() async {
-    final username = _controller.text.trim();
-    if (username.isEmpty) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-      _successName = null;
-    });
-
-    try {
-      await ref.read(repositoryProvider).addFriend(username);
-      if (!mounted) return;
-      ref.invalidate(friendsProvider);
-      setState(() {
-        _successName = username;
-        _loading = false;
-        _controller.clear();
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
-    }
   }
 
   void _showQrSheet() {
@@ -64,8 +34,8 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       context: context,
       builder: (_) => QrFriendSheet(
         onScanned: (username) {
-          _controller.text = username;
-          _submit();
+          _friend.controller.text = username;
+          _friend.submit(() => mounted ? setState(() {}) : null);
         },
       ),
     );
@@ -90,11 +60,12 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _AddFriendForm(
-              controller: _controller,
-              loading: _loading,
-              error: _error,
-              successName: _successName,
-              onSubmit: _submit,
+              controller: _friend.controller,
+              loading: _friend.loading,
+              error: _friend.error,
+              successName: _friend.successName,
+              onSubmit: () =>
+                  _friend.submit(() => mounted ? setState(() {}) : null),
             ),
             const SizedBox(height: 24),
             const _SectionTitle('Pending Requests'),
@@ -108,6 +79,42 @@ class _AddFriendScreenState extends ConsumerState<AddFriendScreen> {
       ),
     );
   }
+}
+
+class _AddFriendController {
+  final WidgetRef ref;
+  final controller = TextEditingController();
+
+  bool loading = false;
+  String? error;
+  String? successName;
+
+  _AddFriendController(this.ref);
+
+  Future<void> submit(VoidCallback refresh) async {
+    final username = controller.text.trim();
+    if (username.isEmpty) return;
+
+    loading = true;
+    error = null;
+    successName = null;
+    refresh();
+
+    try {
+      await ref.read(repositoryProvider).addFriend(username);
+
+      ref.invalidate(friendsProvider);
+      successName = username;
+      controller.clear();
+    } catch (e) {
+      error = e.toString();
+    }
+
+    loading = false;
+    refresh();
+  }
+
+  void dispose() => controller.dispose();
 }
 
 class _SectionTitle extends StatelessWidget {
