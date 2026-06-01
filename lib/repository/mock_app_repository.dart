@@ -100,7 +100,7 @@ class MockAppRepository implements AppRepository {
     _leaderboard = _rerank(
       _leaderboard.map((e) {
         if (e.userId == targetUserId) {
-          final delta = item.type == ItemType.powerup ? 250 : -250;
+          final delta = item.type == ItemType.powerup ? 7 : -7;
           return LeaderboardEntry(
             userId: e.userId,
             username: e.username,
@@ -243,7 +243,7 @@ class MockAppRepository implements AppRepository {
     InventoryItem(
       itemId: 'item-002',
       name: 'Step Drain',
-      description: "Removes 250 points from a friend's total.",
+      description: "Removes 7 points from a friend's total.",
       type: ItemType.attack,
       expiresAt: neverExpires,
     ),
