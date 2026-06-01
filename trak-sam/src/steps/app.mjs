@@ -59,7 +59,9 @@ async function submitSteps(event) {
     Item: { userId, date: today, stepCount: resolvedStepCount, adjustments, points: newPoints, createdAt: existing.Item?.createdAt ?? now, updatedAt: now },
   }));
 
-  if (Math.floor(resolvedStepCount / 500) > Math.floor(prevStepCount / 500)) {
+  const prevMilestone = Math.floor(prevStepCount / 1000);
+  const newMilestone = Math.floor(resolvedStepCount / 1000);
+  for (let i = prevMilestone + 1; i <= newMilestone; i++) {
     if (Math.random() < 0.5) {
       await ddb.send(new PutCommand({ TableName: INVENTORY_TABLE, Item: generateItem(userId) }));
     }
