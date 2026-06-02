@@ -202,4 +202,16 @@ class CloudRepository {
     );
     _check(response, 'declineFriendRequest');
   }
+
+  Future<void> saveFcmToken(String token) async {
+    final response = await _client.post(
+      Uri.parse('$_base/users/fcm-token'),
+      headers: await _headers(),
+      body: jsonEncode({
+        'fcmToken': token,
+      }),
+    );
+
+    _check(response, 'saveFcmToken');
+  }
 }
