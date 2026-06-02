@@ -2,7 +2,6 @@ import 'package:amplify_flutter/amplify_flutter.dart' hide UserProfile;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:trak/screens/powerup_screen.dart';
 import '../auth/auth_notifier.dart';
 import '../auth/login_screen.dart';
 import '../providers/app_providers.dart';
@@ -51,7 +50,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.powerups,
-                builder: (_, _) => PowerupScreen(),
+                builder: (_, _) => const _PowerupsPlaceholder(),
               ),
             ],
           ),
@@ -142,6 +141,15 @@ class _RouterNotifier extends ChangeNotifier {
       needsUsername: _ref.read(needsUsernameProvider),
       currentLocation: state.matchedLocation,
     );
+  }
+}
+
+class _PowerupsPlaceholder extends StatelessWidget {
+  const _PowerupsPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: Text('Powerups — coming soon')));
   }
 }
 
