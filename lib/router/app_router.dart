@@ -2,6 +2,8 @@ import 'package:amplify_flutter/amplify_flutter.dart' hide UserProfile;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:trak/screens/powerup_screen.dart';
+import 'package:trak/screens/user_profile_screen.dart';
 import '../auth/auth_notifier.dart';
 import '../auth/login_screen.dart';
 import '../providers/app_providers.dart';
@@ -50,7 +52,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.powerups,
-                builder: (_, _) => const _PowerupsPlaceholder(),
+                builder: (_, _) => const PowerupScreen(),
               ),
             ],
           ),
@@ -58,7 +60,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.profile,
-                builder: (_, _) => const _ProfilePlaceholder(),
+                builder: (_, _) => const UserProfileScreen(),
               ),
             ],
           ),
@@ -141,23 +143,5 @@ class _RouterNotifier extends ChangeNotifier {
       needsUsername: _ref.read(needsUsernameProvider),
       currentLocation: state.matchedLocation,
     );
-  }
-}
-
-class _PowerupsPlaceholder extends StatelessWidget {
-  const _PowerupsPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Powerups — coming soon')));
-  }
-}
-
-class _ProfilePlaceholder extends StatelessWidget {
-  const _ProfilePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Profile — coming soon')));
   }
 }
