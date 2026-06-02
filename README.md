@@ -38,7 +38,17 @@ The app defaults to a mock backend (`MockAppRepository`) in debug builds. A togg
 ### Run tests
 
 ```bash
+dart run full_coverage   # regenerate test/full_coverage_test.dart
 flutter test --coverage
+```
+
+`full_coverage` generates a file that imports every `lib/` source file so all files appear in the coverage report, not just those imported by existing tests. The file is gitignored and CI regenerates it automatically.
+
+To view the HTML report locally after running the commands above:
+
+```bash
+genhtml coverage/lcov.info -o coverage/html
+open coverage/html/index.html
 ```
 
 Coverage requirements are enforced in CI and change each sprint (currently **60%** for Sprint 3).
@@ -138,7 +148,8 @@ GitHub Actions runs on every PR to `main` and `dev`:
 
 1. `dart format` check
 2. `flutter analyze`
-3. `flutter test --coverage` with minimum coverage gate (60% for Sprint 3)
-4. `flutter build apk --debug`
+3. `dart run full_coverage` to ensure all lib files are included in the report
+4. `flutter test --coverage` with minimum coverage gate (60% for Sprint 3)
+5. `flutter build apk --debug`
 
 The mock/live toggle is only visible in debug builds (`kDebugMode`). Release builds always use the live backend.
