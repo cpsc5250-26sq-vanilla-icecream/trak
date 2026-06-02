@@ -182,5 +182,23 @@ void main() {
         expect(notifier.signOutCalled, isTrue);
       },
     );
+    testWidgets('shows error message when profile fails to load', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWith(
+              (ref) async => throw Exception('Failed to load profile'),
+            ),
+          ],
+          child: const MaterialApp(home: UserProfileScreen()),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Error:'), findsOneWidget);
+    });
   });
 }
