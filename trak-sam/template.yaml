@@ -10,14 +10,11 @@ Parameters:
     Type: String
     Description: Existing Cognito User Pool Client ID
   FirebaseProjectId:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /trak/firebase/project_id
+    Type: String
   FirebaseClientEmail:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /trak/firebase/client_email
+    Type: String
   FirebasePrivateKey:
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /trak/firebase/private_key
+    Type: String
 
 Globals:
   Function:
