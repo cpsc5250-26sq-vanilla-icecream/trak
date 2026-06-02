@@ -24,6 +24,9 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
+      - name: Generate full coverage file
+        run: dart run full_coverage
+
       - name: Test with coverage
         run: flutter test --coverage
 

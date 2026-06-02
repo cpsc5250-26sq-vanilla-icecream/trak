@@ -1,6 +1,9 @@
 # IDE
 .idea/
 
+# Generated
+test/full_coverage_test.dart
+
 # Miscellaneous
 *.class
 *.lock
