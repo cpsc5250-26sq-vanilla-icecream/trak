@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trak/models/avatar_upload_response.dart';
 import 'package:trak/models/friend.dart';
 import 'package:trak/models/friend_request.dart';
 import 'package:trak/models/inventory_item.dart';
@@ -76,6 +77,18 @@ class _FakeRepository implements AppRepository {
   Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(
     String date,
   ) async => [];
+
+  @override
+  Future<AvatarUploadResponse> getAvatarUploadUrl(String contentType) async {
+    return AvatarUploadResponse(
+      uploadUrl: 'https://example.com/upload',
+      publicUrl: 'https://example.com/avatar.jpg',
+      contentType: contentType,
+    );
+  }
+
+  @override
+  Future<void> updateAvatarUrl(String avatarUrl) async {}
 }
 
 Widget _wrap(_FakeRepository repo) => ProviderScope(

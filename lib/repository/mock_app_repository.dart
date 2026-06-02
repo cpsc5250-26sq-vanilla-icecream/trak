@@ -24,7 +24,6 @@ class MockAppRepository implements AppRepository {
   final _tickPayload = 12;
   var _steps = 4200;
   String? _avatarUrl;
-  String _displayName = 'You';
   var _leaderboard = _initialLeaderboard();
   var _inventory = _initialInventory();
   var _friends = _initialFriends();
