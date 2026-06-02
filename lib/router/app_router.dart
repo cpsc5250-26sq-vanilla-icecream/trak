@@ -8,6 +8,7 @@ import '../auth/auth_notifier.dart';
 import '../auth/login_screen.dart';
 import '../providers/app_providers.dart';
 import '../screens/add_friend_screen.dart';
+import '../screens/edit_profile_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/shell_screen.dart';
 import '../screens/username_screen.dart';
@@ -18,6 +19,7 @@ abstract final class AppRoute {
   static const home = '/home';
   static const powerups = '/powerups';
   static const profile = '/profile';
+  static const profileEdit = '/profile/edit';
   static const addFriend = '/friends/add';
 }
 
@@ -56,11 +58,18 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: AppRoute.profile,
                 builder: (_, _) => const UserProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (_, _) => const EditProfileScreen(),
+                  ),
+                ],
               ),
             ],
           ),

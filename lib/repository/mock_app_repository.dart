@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:trak/models/avatar_upload_response.dart';
+
 import '../models/friend.dart';
 import '../models/friend_request.dart';
 import '../utils/points_utils.dart';
@@ -21,6 +23,8 @@ class MockAppRepository implements AppRepository {
 
   final _tickPayload = 12;
   var _steps = 4200;
+  String? _avatarUrl;
+  String _displayName = 'You';
   var _leaderboard = _initialLeaderboard();
   var _inventory = _initialInventory();
   var _friends = _initialFriends();
@@ -77,10 +81,11 @@ class MockAppRepository implements AppRepository {
   }
 
   @override
-  Future<UserProfile> getCurrentUser() async => const UserProfile(
+  Future<UserProfile> getCurrentUser() async => UserProfile(
     userId: _currentUserId,
     username: 'you',
     displayName: 'You',
+    avatarUrl: _avatarUrl,
   );
 
   @override
@@ -209,25 +214,25 @@ class MockAppRepository implements AppRepository {
   }
 
   static List<LeaderboardEntry> _initialLeaderboard() => _rerank([
-    const LeaderboardEntry(
+    LeaderboardEntry(
       userId: _currentUserId,
       username: 'you',
       totalPoints: 1840,
       rank: 0,
     ),
-    const LeaderboardEntry(
+    LeaderboardEntry(
       userId: 'user-002',
       username: 'alex_walks',
       totalPoints: 3120,
       rank: 0,
     ),
-    const LeaderboardEntry(
+    LeaderboardEntry(
       userId: 'user-003',
       username: 'steph_steps',
       totalPoints: 2750,
       rank: 0,
     ),
-    const LeaderboardEntry(
+    LeaderboardEntry(
       userId: 'user-004',
       username: 'mike_miles',
       totalPoints: 980,
@@ -309,4 +314,18 @@ class MockAppRepository implements AppRepository {
       createdAt: '2026-05-18T12:00:00Z',
     ),
   ];
+
+  @override
+  Future<AvatarUploadResponse> getAvatarUploadUrl(String contentType) async {
+    return AvatarUploadResponse(
+      uploadUrl: 'mock-upload-url',
+      publicUrl: 'https://i.imgur.com/oBPXx0D.png',
+      contentType: contentType,
+    );
+  }
+
+  @override
+  Future<void> updateAvatarUrl(String avatarUrl) async {
+    _avatarUrl = avatarUrl;
+  }
 }

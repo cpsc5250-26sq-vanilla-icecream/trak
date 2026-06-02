@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:trak/router/app_router.dart';
 import '../auth/auth_notifier.dart';
 import '../models/user_profile.dart';
 import '../providers/app_providers.dart';
@@ -29,7 +31,7 @@ class UserProfileScreen extends ConsumerWidget {
             children: [
               _ProfileHeader(profile: profile),
               FilledButton.icon(
-                onPressed: () {},
+                onPressed: () => context.push(AppRoute.profileEdit),
                 icon: const Icon(Icons.edit),
                 label: const Text('Edit Profile'),
               ),

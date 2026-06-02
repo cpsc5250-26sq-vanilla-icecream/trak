@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trak/service/local_notification_service.dart';
-import '../auth/auth_notifier.dart';
 import '../providers/app_providers.dart';
 import '../router/app_router.dart';
 import '../utils/points_utils.dart';
@@ -26,11 +25,6 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => ref.read(authStateProvider.notifier).signOut(),
-        child: const Icon(Icons.logout),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       body: RefreshIndicator(
         onRefresh: () => ref.read(syncServiceProvider).syncOnForeground(),
         child: SingleChildScrollView(

@@ -1,3 +1,4 @@
+import '../models/avatar_upload_response.dart';
 import '../models/friend.dart';
 import '../models/friend_request.dart';
 import '../models/leaderboard_entry.dart';
@@ -21,4 +22,6 @@ abstract class AppRepository {
   Future<void> acceptFriendRequest(String fromUserId);
   Future<void> declineFriendRequest(String fromUserId);
   Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(String date);
+  Future<AvatarUploadResponse> getAvatarUploadUrl(String contentType);
+  Future<void> updateAvatarUrl(String avatarUrl);
 }
