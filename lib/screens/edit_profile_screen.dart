@@ -27,7 +27,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final profile = await ref.read(currentUserProvider.future);
     if (!mounted) return;
     setState(() {
-      _displayNameController.text = profile.displayName;
+      _displayNameController.text = profile.displayName.isNotEmpty
+          ? profile.displayName
+          : profile.username;
       _avatarUrl = profile.avatarUrl;
     });
   }
@@ -85,7 +87,8 @@ class _AvatarSection extends StatelessWidget {
       final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
       if (picked == null) return;
       final repo = ref.read(repositoryProvider);
-      final upload = await repo.getAvatarUploadUrl('image/jpeg');
+      final mimeType = picked.mimeType ?? 'image/jpeg';
+      final upload = await repo.getAvatarUploadUrl(mimeType);
       if (upload.uploadUrl != 'mock-upload-url') {
         final bytes = await File(picked.path).readAsBytes();
         final response = await http.put(

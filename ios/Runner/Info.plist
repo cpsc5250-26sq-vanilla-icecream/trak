@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Select a profile picture from your photo library.</string>
+
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Save profile pictures to your photo library.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -52,7 +57,7 @@
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Trak saves your step count to Apple Health.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Trak uses the camera to scan QR codes to add friends.</string>
+	<string>Trak uses the camera to scan QR codes to add friends and to take profile picture</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
