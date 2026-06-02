@@ -24,6 +24,7 @@ Globals:
         INVENTORY_TABLE: !Ref InventoryTable
         SNAPSHOTS_TABLE: !Ref SnapshotsTable
         FRIEND_REQUESTS_TABLE: !Ref FriendRequestsTable
+        AVATARS_BUCKET: !Ref AvatarsBucket
 
 Resources:
 
@@ -146,6 +147,38 @@ Resources:
         - AttributeName: itemId
           KeyType: RANGE
 
+  # ── S3 Buckets ────────────────────────────────────────────────────────────────
+
+  AvatarsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-avatars"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - PUT
+            AllowedOrigins:
+              - "*"
+            MaxAge: 3000
+
+  AvatarsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AvatarsBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "arn:aws:s3:::${AvatarsBucket}/*"
+
   # ── Lambda Functions ──────────────────────────────────────────────────────────
 
   UsersFunction:
@@ -156,12 +189,20 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
+        - S3WritePolicy:
+            BucketName: !Ref AvatarsBucket
       Events:
         UpsertUser:
           Type: HttpApi
           Properties:
             ApiId: !Ref TrakApi
             Path: /users
+            Method: POST
+        GetAvatarUploadUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TrakApi
+            Path: /users/avatar
             Method: POST
         GetMe:
           Type: HttpApi
@@ -338,4 +379,6 @@ Outputs:
     Value: !Ref FriendsTable
   InventoryTableName:
     Value: !Ref InventoryTable
+  AvatarsBucketName:
+    Value: !Ref AvatarsBucket
 

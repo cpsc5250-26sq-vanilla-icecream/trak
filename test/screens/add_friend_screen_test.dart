@@ -61,6 +61,8 @@ class _FakeRepository implements AppRepository {
     displayName: 'Test User',
   );
   @override
+  Future<void> updateDisplayName(String displayName) async {}
+  @override
   Future<void> putSteps(int stepCount) async {}
   @override
   Future<UseItemResult> useItem(String itemId, String targetUserId) async =>

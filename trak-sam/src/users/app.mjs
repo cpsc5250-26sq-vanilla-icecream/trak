@@ -1,8 +1,12 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const s3 = new S3Client({});
 const USERS_TABLE = process.env.USERS_TABLE;
+const AVATARS_BUCKET = process.env.AVATARS_BUCKET;
 
 const res = (statusCode, body) => ({
   statusCode,
@@ -58,6 +62,24 @@ async function getMe(event) {
   return res(200, result.Item);
 }
 
+async function getAvatarUploadUrl(event) {
+  const userId = getUserId(event);
+  const { contentType = "image/jpeg" } = JSON.parse(event.body || "{}");
+  const ext = contentType.split("/")[1] || "jpg";
+  const key = `avatars/${userId}/${Date.now()}.${ext}`;
+
+  const command = new PutObjectCommand({
+    Bucket: AVATARS_BUCKET,
+    Key: key,
+    ContentType: contentType,
+  });
+
+  const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+  const publicUrl = `https://${AVATARS_BUCKET}.s3.amazonaws.com/${key}`;
+
+  return res(200, { uploadUrl, publicUrl, contentType });
+}
+
 async function getUser(event) {
   const { userId } = event.pathParameters;
   const result = await ddb.send(new GetCommand({ TableName: USERS_TABLE, Key: { userId } }));
@@ -71,6 +93,7 @@ export const handler = async (event) => {
   const route = path.replace(/^\/prod/, "");
   try {
     if (method === "POST" && route === "/users") return await upsertUser(event);
+    if (method === "POST" && route === "/users/avatar") return await getAvatarUploadUrl(event);
     if (method === "GET" && route === "/users/me") return await getMe(event);
     if (method === "GET") return await getUser(event);
     return res(404, { message: "Not found" });
