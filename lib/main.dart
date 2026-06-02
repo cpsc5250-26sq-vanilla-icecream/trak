@@ -3,6 +3,8 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:trak/providers/app_providers.dart';
+import 'package:trak/repository/cloud_repository.dart';
 import 'package:trak/service/push_notification_service.dart';
 import 'auth/amplify_config.dart';
 import 'background/step_sync_task.dart';
@@ -12,7 +14,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Cloud Notification (TODO)
   await Firebase.initializeApp();
-  await PushNotificationService.initialize();
+  final token = await PushNotificationService.initialize();
+  if (token != null) {
+    await CloudRepository().saveFcmToken(token);
+  }
+  runApp(const ProviderScope(child: TrakApp()));
   await _configureAmplify();
   await initStepSyncTask();
   runApp(const ProviderScope(child: TrakApp()));

@@ -12,27 +12,26 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class PushNotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
-  static Future<void> initialize() async {
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-
+  static Future<String?> initialize() async {
+    FirebaseMessaging.onBackgroundMessage(
+      firebaseMessagingBackgroundHandler,
+    );
     await _requestPermission();
-    await _printToken();
+    String? token;
+    try {
+      token = await _messaging.getToken();
+      debugPrint('FCM TOKEN: $token');
+    } catch (e) {
+      debugPrint('FCM token not yet available: $e');
+    }
     _listenForeground();
+    return token;
   }
 
   static Future<void> _requestPermission() async {
     final settings = await _messaging.requestPermission();
 
     debugPrint('Permission: ${settings.authorizationStatus}');
-  }
-
-  static Future<void> _printToken() async {
-    try {
-      final token = await _messaging.getToken();
-      debugPrint('FCM TOKEN: $token');
-    } catch (e) {
-      debugPrint('FCM token not yet available: $e');
-    }
   }
 
   static void _listenForeground() {
