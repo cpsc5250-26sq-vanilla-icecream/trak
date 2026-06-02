@@ -45,7 +45,6 @@ class HomeScreen extends ConsumerWidget {
                 SizedBox(height: 32),
                 LeaderboardWidget(),
                 SizedBox(height: 32),
-                _TestNotification(),
               ],
             ),
           ),
@@ -137,20 +136,6 @@ class _MockToggle extends ConsumerWidget {
           },
         ),
       ],
-    );
-  }
-}
-
-class _TestNotification extends StatelessWidget {
-  const _TestNotification();
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () async {
-        await LocalNotificationService.showNotification();
-      },
-      child: const Text('Push Test Notification'),
     );
   }
 }
