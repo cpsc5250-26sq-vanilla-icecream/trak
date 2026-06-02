@@ -207,9 +207,7 @@ class CloudRepository {
     final response = await _client.post(
       Uri.parse('$_base/users'),
       headers: await _headers(),
-      body: jsonEncode({
-        'fcmToken': token,
-      }),
+      body: jsonEncode({'fcmToken': token}),
     );
     _check(response, 'saveFcmToken');
   }

@@ -1,10 +1,21 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, BatchGetCommand, DeleteCommand, GetCommand, PutCommand, QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
+import admin from "firebase-admin";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const USERS_TABLE = process.env.USERS_TABLE;
 const FRIENDS_TABLE = process.env.FRIENDS_TABLE;
 const FRIEND_REQUESTS_TABLE = process.env.FRIEND_REQUESTS_TABLE;
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  });
+}
 
 const res = (statusCode, body) => ({
   statusCode,
@@ -67,7 +78,26 @@ async function sendFriendRequest(event) {
       createdAt: now,
     },
   }));
+const token = target.fcmToken;
 
+if (token) {
+  try {
+    const senderName =
+      currentUser.displayName ??
+      currentUser.username ??
+      "A user";
+
+    await admin.messaging().send({
+      token,
+      notification: {
+        title: "New Friend Request",
+        body: `${senderName} sent you a friend request.`,
+      },
+    });
+  } catch (err) {
+    console.error("Failed to send friend request notification", err);
+  }
+}
   return res(200, { status: "pending" });
 }
 
@@ -99,6 +129,31 @@ async function acceptRequest(event) {
       { Delete: { TableName: FRIEND_REQUESTS_TABLE, Key: { toUserId: userId, fromUserId } } },
     ],
   }));
+ const senderResult = await ddb.send(
+    new GetCommand({
+      TableName: USERS_TABLE,
+      Key: { userId: fromUserId },
+    }),
+  );
+
+  const token = senderResult.Item?.fcmToken;
+
+  if (token) {
+    try {
+      await admin.messaging().send({
+        token,
+        notification: {
+          title: "Friend Request Accepted",
+          body: "Your friend request was accepted.",
+        },
+      });
+    } catch (err) {
+      console.error(
+        "Failed to send friend accepted notification",
+        err,
+      );
+    }
+  }
   return res(200, { message: "Friend request accepted" });
 }
 

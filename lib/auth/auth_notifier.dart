@@ -19,7 +19,7 @@ class AuthNotifier extends AsyncNotifier<AuthUser?> {
           try {
             await CloudRepository().saveFcmToken(token);
             debugPrint('TOKEN SAVED TO BACKEND');
-          }catch(e){
+          } catch (e) {
             debugPrint('Failed to save token: $e ');
           }
         }
