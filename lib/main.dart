@@ -12,14 +12,9 @@ import 'router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Cloud Notification (TODO)
-  await Firebase.initializeApp();
-  final token = await PushNotificationService.initialize();
-  if (token != null) {
-    await CloudRepository().saveFcmToken(token);
-  }
-  runApp(const ProviderScope(child: TrakApp()));
   await _configureAmplify();
+  await Firebase.initializeApp();
+  await PushNotificationService.initialize();
   await initStepSyncTask();
   runApp(const ProviderScope(child: TrakApp()));
 }
