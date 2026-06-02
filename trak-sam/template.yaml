@@ -13,8 +13,6 @@ Parameters:
     Type: String
   FirebaseClientEmail:
     Type: String
-  FirebasePrivateKey:
-    Type: String
 
 Globals:
   Function:
@@ -33,7 +31,7 @@ Globals:
         AVATARS_BUCKET: !Ref AvatarsBucket
         FIREBASE_PROJECT_ID: !Ref FirebaseProjectId
         FIREBASE_CLIENT_EMAIL: !Ref FirebaseClientEmail
-        FIREBASE_PRIVATE_KEY: !Ref FirebasePrivateKey
+        FIREBASE_PRIVATE_KEY_PARAM: /trak/firebase/private_key
 
 Resources:
 
@@ -284,6 +282,8 @@ Resources:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:
             TableName: !Ref FriendRequestsTable
+        - SSMParameterReadPolicy:
+            ParameterName: trak/firebase/private_key
       Events:
         SendFriendRequest:
           Type: HttpApi
@@ -336,6 +336,8 @@ Resources:
             TableName: !Ref FriendsTable
         - DynamoDBReadPolicy:
             TableName: !Ref UsersTable
+        - SSMParameterReadPolicy:
+            ParameterName: trak/firebase/private_key
       Events:
         GetInventory:
           Type: HttpApi

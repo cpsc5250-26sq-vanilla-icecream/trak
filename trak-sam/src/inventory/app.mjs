@@ -1,21 +1,32 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, DeleteCommand, GetCommand, PutCommand, QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import admin from "firebase-admin";
+import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const ssm = new SSMClient({});
 const INVENTORY_TABLE = process.env.INVENTORY_TABLE;
 const STEPS_TABLE = process.env.STEPS_TABLE;
 const FRIENDS_TABLE = process.env.FRIENDS_TABLE;
 const USERS_TABLE = process.env.USERS_TABLE;
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  });
+let firebaseReady = false;
+async function ensureFirebase() {
+  if (firebaseReady) return;
+  const { Parameter } = await ssm.send(new GetParameterCommand({
+    Name: process.env.FIREBASE_PRIVATE_KEY_PARAM,
+    WithDecryption: true,
+  }));
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: Parameter.Value.replace(/\\n/g, "\n"),
+      }),
+    });
+  }
+  firebaseReady = true;
 }
 const stepsToPoints = (steps) => Math.floor(steps / 100);
 
@@ -137,6 +148,7 @@ if (type === "attack") {
 
   if (token) {
     try {
+      await ensureFirebase();
       const attacker = await ddb.send(
         new GetCommand({
           TableName: USERS_TABLE,
@@ -190,6 +202,7 @@ async function grantItem(event) {
   const token = await getFcmToken(userId);
   if (token) {
       try {
+        await ensureFirebase();
         await admin.messaging().send({
           token,
           notification: {
