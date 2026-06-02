@@ -9,6 +9,15 @@ Parameters:
   UserPoolClientId:
     Type: String
     Description: Existing Cognito User Pool Client ID
+  FirebaseProjectId:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /trak/firebase/project_id
+  FirebaseClientEmail:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /trak/firebase/client_email
+  FirebasePrivateKey:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /trak/firebase/private_key
 
 Globals:
   Function:
@@ -25,6 +34,9 @@ Globals:
         SNAPSHOTS_TABLE: !Ref SnapshotsTable
         FRIEND_REQUESTS_TABLE: !Ref FriendRequestsTable
         AVATARS_BUCKET: !Ref AvatarsBucket
+        FIREBASE_PROJECT_ID: !Ref FirebaseProjectId
+        FIREBASE_CLIENT_EMAIL: !Ref FirebaseClientEmail
+        FIREBASE_PRIVATE_KEY: !Ref FirebasePrivateKey
 
 Resources:
 
@@ -325,6 +337,8 @@ Resources:
             TableName: !Ref StepsTable
         - DynamoDBReadPolicy:
             TableName: !Ref FriendsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersTable
       Events:
         GetInventory:
           Type: HttpApi
