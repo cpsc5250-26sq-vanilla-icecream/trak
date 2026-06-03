@@ -1,5 +1,6 @@
 import 'package:amplify_flutter/amplify_flutter.dart' show safePrint;
 
+import '../models/avatar_upload_response.dart';
 import '../models/friend.dart';
 import '../models/friend_request.dart';
 import '../models/inventory_item.dart';
@@ -111,4 +112,12 @@ class CachingAppRepository implements AppRepository {
   @override
   Future<List<LeaderboardEntry>> fetchHistoricalLeaderboard(String date) =>
       _cloud.fetchLeaderboard(date: date);
+
+  @override
+  Future<AvatarUploadResponse> getAvatarUploadUrl(String contentType) =>
+      _cloud.getAvatarUploadUrl(contentType);
+
+  @override
+  Future<void> updateAvatarUrl(String avatarUrl) =>
+      _cloud.updateAvatarUrl(avatarUrl);
 }

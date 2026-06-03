@@ -3,6 +3,7 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart' hide UserProfile;
 import 'package:http/http.dart' as http;
 import '../auth/jwt_utils.dart';
+import '../models/avatar_upload_response.dart';
 import '../models/friend.dart';
 import '../models/friend_request.dart';
 import '../models/inventory_item.dart';
@@ -201,6 +202,28 @@ class CloudRepository {
       headers: await _headers(),
     );
     _check(response, 'declineFriendRequest');
+  }
+
+  Future<AvatarUploadResponse> getAvatarUploadUrl(String contentType) async {
+    final response = await _client.post(
+      Uri.parse('$_base/users/avatar'),
+      headers: await _headers(),
+      body: jsonEncode({'contentType': contentType}),
+    );
+
+    _check(response, 'getAvatarUploadUrl');
+
+    return AvatarUploadResponse.fromJson(jsonDecode(response.body));
+  }
+
+  Future<void> updateAvatarUrl(String avatarUrl) async {
+    final response = await _client.post(
+      Uri.parse('$_base/users'),
+      headers: await _headers(),
+      body: jsonEncode({'avatarUrl': avatarUrl}),
+    );
+
+    _check(response, 'updateAvatarUrl');
   }
 
   Future<void> saveFcmToken(String token) async {

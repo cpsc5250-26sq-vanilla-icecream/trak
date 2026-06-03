@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:trak/screens/powerup_screen.dart';
+import 'package:trak/screens/user_profile_screen.dart';
 import '../auth/auth_notifier.dart';
 import '../auth/login_screen.dart';
 import '../providers/app_providers.dart';
 import '../screens/add_friend_screen.dart';
+import '../screens/edit_profile_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/shell_screen.dart';
 import '../screens/username_screen.dart';
@@ -17,6 +19,7 @@ abstract final class AppRoute {
   static const home = '/home';
   static const powerups = '/powerups';
   static const profile = '/profile';
+  static const profileEdit = '/profile/edit';
   static const addFriend = '/friends/add';
 }
 
@@ -51,15 +54,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoute.powerups,
-                builder: (_, _) => PowerupScreen(),
+                builder: (_, _) => const PowerupScreen(),
               ),
             ],
           ),
+
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: AppRoute.profile,
-                builder: (_, _) => const _ProfilePlaceholder(),
+                builder: (_, _) => const UserProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (_, _) => const EditProfileScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -142,14 +152,5 @@ class _RouterNotifier extends ChangeNotifier {
       needsUsername: _ref.read(needsUsernameProvider),
       currentLocation: state.matchedLocation,
     );
-  }
-}
-
-class _ProfilePlaceholder extends StatelessWidget {
-  const _ProfilePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Profile — coming soon')));
   }
 }

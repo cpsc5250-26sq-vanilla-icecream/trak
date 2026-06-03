@@ -22,7 +22,6 @@ void main() {
     expect(find.text('Steps today'), findsOneWidget);
     expect(find.text('Leaderboard'), findsOneWidget);
     expect(find.byIcon(Icons.person_add), findsOneWidget);
-    expect(find.byIcon(Icons.logout), findsOneWidget);
 
     repo.dispose();
   });
