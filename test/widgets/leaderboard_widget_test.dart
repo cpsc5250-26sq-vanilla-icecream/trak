@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trak/models/avatar_upload_response.dart';
 import 'package:trak/models/friend.dart';
 import 'package:trak/models/friend_request.dart';
 import 'package:trak/models/inventory_item.dart';
@@ -44,6 +45,11 @@ class _FakeRepo implements AppRepository {
   @override
   Future<UseItemResult> useItem(String i, String t) async =>
       const UseItemResult.success();
+  @override
+  Future<AvatarUploadResponse> getAvatarUploadUrl(String contentType) =>
+      throw UnimplementedError();
+  @override
+  Future<void> updateAvatarUrl(String avatarUrl) async {}
 }
 
 Widget _wrapRow(LeaderboardRow row) => MaterialApp(home: Scaffold(body: row));
