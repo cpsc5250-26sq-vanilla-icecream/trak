@@ -18,7 +18,8 @@ const getUserId = (event) => event.requestContext.authorizer.jwt.claims.sub;
 
 async function upsertUser(event) {
   const userId = getUserId(event);
-  const { username, displayName, avatarUrl, colorScheme, font, fcmToken } = JSON.parse(event.body || "{}");
+  const body = JSON.parse(event.body || "{}");
+  const { username, displayName, avatarUrl, colorScheme, font } = body;
 
   if (username) {
     const hit = await ddb.send(new QueryCommand({
@@ -35,7 +36,7 @@ async function upsertUser(event) {
   const now = new Date().toISOString();
   const existing = await ddb.send(new GetCommand({ TableName: USERS_TABLE, Key: { userId } }));
   const prev = existing.Item ?? {};
-  const resolvedFcmToken = fcmToken ?? prev.fcmToken;
+  const resolvedFcmToken = 'fcmToken' in body ? body.fcmToken : prev.fcmToken;
 
   const resolvedUsername = username ?? prev.username;
   const resolvedAvatarUrl = avatarUrl ?? prev.avatarUrl;

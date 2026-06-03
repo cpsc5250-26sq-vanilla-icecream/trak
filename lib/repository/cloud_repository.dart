@@ -211,4 +211,13 @@ class CloudRepository {
     );
     _check(response, 'saveFcmToken');
   }
+
+  Future<void> clearFcmToken() async {
+    final response = await _client.post(
+      Uri.parse('$_base/users'),
+      headers: await _headers(),
+      body: jsonEncode({'fcmToken': null}),
+    );
+    _check(response, 'clearFcmToken');
+  }
 }

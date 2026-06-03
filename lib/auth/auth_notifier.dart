@@ -2,7 +2,7 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../repository/cloud_repository.dart';
+import '../providers/app_providers.dart';
 
 final authStateProvider = AsyncNotifierProvider<AuthNotifier, AuthUser?>(
   AuthNotifier.new,
@@ -17,7 +17,7 @@ class AuthNotifier extends AsyncNotifier<AuthUser?> {
         debugPrint('TOKEN AFTER LOGIN: $token');
         if (token != null) {
           try {
-            await CloudRepository().saveFcmToken(token);
+            await ref.read(cloudRepositoryProvider).saveFcmToken(token);
             debugPrint('TOKEN SAVED TO BACKEND');
           } catch (e) {
             debugPrint('Failed to save token: $e ');
@@ -42,6 +42,12 @@ class AuthNotifier extends AsyncNotifier<AuthUser?> {
   }
 
   Future<void> signOut() async {
+    try {
+      await ref.read(cloudRepositoryProvider).clearFcmToken();
+    } catch (e) {
+      debugPrint('Failed to clear FCM token: $e');
+    }
+    await FirebaseMessaging.instance.deleteToken();
     await Amplify.Auth.signOut(
       options: const SignOutOptions(globalSignOut: true),
     );
