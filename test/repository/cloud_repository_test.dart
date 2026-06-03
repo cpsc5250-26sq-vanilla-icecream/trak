@@ -241,6 +241,50 @@ void main() {
     });
   });
 
+  group('CloudRepository.fetchLeaderboard (historical)', () {
+    test('returns empty list on 404 when date is provided', () async {
+      final repo = _repo(
+        (_) async => http.Response(
+          jsonEncode({'message': 'No snapshot available for that date'}),
+          404,
+        ),
+      );
+      expect(await repo.fetchLeaderboard(date: '2025-01-01'), isEmpty);
+    });
+
+    test('returns entries on 200 when date is provided', () async {
+      final repo = _repo(
+        (_) async => http.Response(
+          jsonEncode([
+            {'userId': 'u1', 'username': 'alice', 'points': 800, 'rank': 1},
+          ]),
+          200,
+        ),
+      );
+      final entries = await repo.fetchLeaderboard(date: '2025-01-01');
+      expect(entries, hasLength(1));
+      expect(entries.first.userId, 'u1');
+    });
+
+    test('sends date as query parameter', () async {
+      Uri? captured;
+      final repo = _repo((req) async {
+        captured = req.url;
+        return http.Response('[]', 200);
+      });
+      await repo.fetchLeaderboard(date: '2025-06-01');
+      expect(captured?.queryParameters['date'], '2025-06-01');
+    });
+
+    test('throws on non-404 error when date is provided', () async {
+      final repo = _repo((_) async => http.Response('', 500));
+      await expectLater(
+        repo.fetchLeaderboard(date: '2025-01-01'),
+        throwsException,
+      );
+    });
+  });
+
   group('CloudRepository.useItem', () {
     test('returns success result on 200', () async {
       final repo = _repo((_) async => http.Response('', 200));

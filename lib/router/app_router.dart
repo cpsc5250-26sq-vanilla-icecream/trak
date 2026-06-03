@@ -9,6 +9,7 @@ import '../auth/login_screen.dart';
 import '../providers/app_providers.dart';
 import '../screens/add_friend_screen.dart';
 import '../screens/edit_profile_screen.dart';
+import '../screens/historical_leaderboard_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/shell_screen.dart';
 import '../screens/username_screen.dart';
@@ -21,6 +22,7 @@ abstract final class AppRoute {
   static const profile = '/profile';
   static const profileEdit = '/profile/edit';
   static const addFriend = '/friends/add';
+  static const historicalLeaderboard = '/leaderboard/history';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -38,6 +40,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoute.addFriend,
         builder: (_, _) => const AddFriendScreen(),
+      ),
+      GoRoute(
+        path: AppRoute.historicalLeaderboard,
+        builder: (_, _) => const HistoricalLeaderboardScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => ShellScreen(shell: shell),
