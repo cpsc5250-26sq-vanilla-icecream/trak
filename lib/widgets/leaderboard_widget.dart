@@ -103,7 +103,11 @@ class LeaderboardRow extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: _RankAvatar(rank: entry.rank, color: rankColor),
+        leading: _RankAvatar(
+          rank: entry.rank,
+          color: rankColor,
+          avatarUrl: entry.avatarUrl,
+        ),
         title: _LeaderboardName(
           name: entry.displayName?.isNotEmpty == true
               ? entry.displayName!
@@ -119,24 +123,58 @@ class LeaderboardRow extends StatelessWidget {
 class _RankAvatar extends StatelessWidget {
   final int rank;
   final Color color;
+  final String? avatarUrl;
 
-  const _RankAvatar({required this.rank, required this.color});
+  const _RankAvatar({required this.rank, required this.color, this.avatarUrl});
 
   @override
   Widget build(BuildContext context) {
     final isTopThree = rank <= 3;
-
-    return CircleAvatar(
+    final avatar = CircleAvatar(
       radius: 18,
       backgroundColor: color,
-      child: Text(
-        '$rank',
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.bold,
-          color: isTopThree ? Colors.black87 : Colors.black54,
+      backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+      child: avatarUrl == null
+          ? Text(
+              '$rank',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: isTopThree ? Colors.black87 : Colors.black54,
+              ),
+            )
+          : null,
+    );
+
+    if (avatarUrl == null) return avatar;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        avatar,
+        Positioned(
+          bottom: -2,
+          right: -4,
+          child: Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 1),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '$rank',
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
