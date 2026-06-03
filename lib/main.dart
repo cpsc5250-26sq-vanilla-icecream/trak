@@ -3,7 +3,6 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:trak/service/local_notification_service.dart';
 import 'package:trak/service/push_notification_service.dart';
 import 'auth/amplify_config.dart';
 import 'background/step_sync_task.dart';
@@ -11,12 +10,9 @@ import 'router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Local Notification (POC)
-  await LocalNotificationService.initialize();
-  // Cloud Notification (TODO)
+  await _configureAmplify();
   await Firebase.initializeApp();
   await PushNotificationService.initialize();
-  await _configureAmplify();
   await initStepSyncTask();
   runApp(const ProviderScope(child: TrakApp()));
 }

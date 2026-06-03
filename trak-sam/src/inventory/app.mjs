@@ -1,11 +1,33 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, DeleteCommand, GetCommand, PutCommand, QueryCommand, TransactWriteCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, DeleteCommand, GetCommand, PutCommand, QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
+import admin from "firebase-admin";
+import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const ssm = new SSMClient({});
 const INVENTORY_TABLE = process.env.INVENTORY_TABLE;
 const STEPS_TABLE = process.env.STEPS_TABLE;
 const FRIENDS_TABLE = process.env.FRIENDS_TABLE;
+const USERS_TABLE = process.env.USERS_TABLE;
 
+let firebaseReady = false;
+async function ensureFirebase() {
+  if (firebaseReady) return;
+  const { Parameter } = await ssm.send(new GetParameterCommand({
+    Name: process.env.FIREBASE_PRIVATE_KEY_PARAM,
+    WithDecryption: true,
+  }));
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: Parameter.Value.replace(/\\n/g, "\n"),
+      }),
+    });
+  }
+  firebaseReady = true;
+}
 const stepsToPoints = (steps) => Math.floor(steps / 100);
 
 const POINT_DELTA = { powerup: 7, attack: -7 };
@@ -17,6 +39,17 @@ const res = (statusCode, body) => ({
 });
 
 const getUserId = (event) => event.requestContext.authorizer.jwt.claims.sub;
+
+async function getFcmToken(userId) {
+  const result = await ddb.send(
+    new GetCommand({
+      TableName: USERS_TABLE,
+      Key: { userId },
+    }),
+  );
+
+  return result.Item?.fcmToken;
+}
 
 async function getInventory(event) {
   const userId = getUserId(event);
@@ -110,7 +143,36 @@ async function useItem(event) {
       },
     ],
   }));
+if (type === "attack") {
+  const token = await getFcmToken(targetUserId);
 
+  if (token) {
+    try {
+      await ensureFirebase();
+      const attacker = await ddb.send(
+        new GetCommand({
+          TableName: USERS_TABLE,
+          Key: { userId },
+        }),
+      );
+
+      const attackerName =
+        attacker.Item?.displayName ??
+        attacker.Item?.username ??
+        "A friend";
+
+      await admin.messaging().send({
+        token,
+        notification: {
+          title: "You've Been Attacked!",
+          body: `${attackerName} used an attack item on you.`,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to send attack notification", err);
+    }
+  }
+}
   return res(200, { success: true, itemId, targetUserId, pointDelta });
 }
 
@@ -137,6 +199,21 @@ async function grantItem(event) {
   };
 
   await ddb.send(new PutCommand({ TableName: INVENTORY_TABLE, Item: item }));
+  const token = await getFcmToken(userId);
+  if (token) {
+      try {
+        await ensureFirebase();
+        await admin.messaging().send({
+          token,
+          notification: {
+            title: "New Inventory Item",
+            body: `You received ${name}!`,
+          },
+        });
+      } catch (err) {
+        console.error("Failed to send notification", err);
+      }
+  }
   return res(200, item);
 }
 
