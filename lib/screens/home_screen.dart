@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,7 +15,6 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Trak'),
         actions: [
-          if (kDebugMode) _MockToggle(),
           IconButton(
             icon: const Icon(Icons.person_add),
             tooltip: 'Add friend',
@@ -105,31 +103,6 @@ class _StepsSection extends ConsumerWidget {
           ),
           loading: () => const CircularProgressIndicator(),
           error: (e, _) => Text('Error: $e'),
-        ),
-      ],
-    );
-  }
-}
-
-class _MockToggle extends ConsumerWidget {
-  const _MockToggle();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final useMock = ref.watch(useMockProvider);
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          useMock ? 'Mock' : 'Live',
-          style: Theme.of(context).textTheme.labelSmall,
-        ),
-        Switch(
-          value: useMock,
-          onChanged: (v) {
-            ref.read(useMockProvider.notifier).set(v);
-          },
         ),
       ],
     );
