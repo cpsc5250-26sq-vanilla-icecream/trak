@@ -32,13 +32,15 @@ class HomeScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                _UserHeader(),
-                SizedBox(height: 24),
-                _StepsSection(),
-                SizedBox(height: 32),
-                LeaderboardWidget(),
-                SizedBox(height: 32),
+              children: [
+                const _UserHeader(),
+                const SizedBox(height: 24),
+                const _StepsSection(),
+                const SizedBox(height: 32),
+                LeaderboardWidget(
+                  onHistoryTap: () =>
+                      context.push(AppRoute.historicalLeaderboard),
+                ),
               ],
             ),
           ),

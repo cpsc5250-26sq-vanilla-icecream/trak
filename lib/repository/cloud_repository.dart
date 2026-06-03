@@ -114,6 +114,7 @@ class CloudRepository {
           ).replace(queryParameters: {'date': date})
         : Uri.parse('$_base/leaderboard');
     final response = await _client.get(uri, headers: await _headers());
+    if (date != null && response.statusCode == 404) return [];
     _check(response, 'fetchLeaderboard');
     final list = jsonDecode(response.body) as List<dynamic>;
     return list

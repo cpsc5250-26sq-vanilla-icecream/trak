@@ -5,7 +5,9 @@ import '../models/leaderboard_entry.dart';
 import '../providers/app_providers.dart';
 
 class LeaderboardWidget extends ConsumerWidget {
-  const LeaderboardWidget({super.key});
+  final VoidCallback? onHistoryTap;
+
+  const LeaderboardWidget({super.key, this.onHistoryTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -14,7 +16,19 @@ class LeaderboardWidget extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Leaderboard', style: Theme.of(context).textTheme.titleMedium),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Leaderboard', style: Theme.of(context).textTheme.titleMedium),
+            if (onHistoryTap != null)
+              IconButton(
+                icon: const Icon(Icons.history),
+                tooltip: 'Past leaderboards',
+                iconSize: 20,
+                onPressed: onHistoryTap,
+              ),
+          ],
+        ),
         const SizedBox(height: 8),
         _LeaderboardContent(currentUserId: currentUserId),
       ],
@@ -35,7 +49,7 @@ class _LeaderboardContent extends ConsumerWidget {
       data: (entries) => Column(
         children: entries
             .map(
-              (entry) => _LeaderboardRow(
+              (entry) => LeaderboardRow(
                 entry: entry,
                 isCurrentUser: entry.userId == currentUserId,
               ),
@@ -48,11 +62,15 @@ class _LeaderboardContent extends ConsumerWidget {
   }
 }
 
-class _LeaderboardRow extends StatelessWidget {
+class LeaderboardRow extends StatelessWidget {
   final LeaderboardEntry entry;
   final bool isCurrentUser;
 
-  const _LeaderboardRow({required this.entry, required this.isCurrentUser});
+  const LeaderboardRow({
+    super.key,
+    required this.entry,
+    required this.isCurrentUser,
+  });
 
   static const _gold = Color(0xFFFFD700);
   static const _silver = Color(0xFFB0BEC5);
@@ -87,7 +105,9 @@ class _LeaderboardRow extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: _RankAvatar(rank: entry.rank, color: rankColor),
         title: _LeaderboardName(
-          name: entry.displayName ?? entry.username,
+          name: entry.displayName?.isNotEmpty == true
+              ? entry.displayName!
+              : entry.username,
           isCurrentUser: isCurrentUser,
         ),
         trailing: _PointsDisplay(points: entry.totalPoints),
