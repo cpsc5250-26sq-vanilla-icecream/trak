@@ -36,7 +36,10 @@ class TrakApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Trak',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF4ade80),
+          brightness: Brightness.dark,
+        ),
       ),
       routerConfig: router,
     );

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trak: Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f0f0f;
+      color: #f0f0f0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 3vw 4vw;
+      gap: 2.5vh;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    h1 span {
+      color: #4ade80;
+    }
+
+    .sections {
+      display: grid;
+      grid-template-columns: 1fr 1fr 2fr;
+      gap: 2vw;
+      flex: 1;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 1.8rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card h2 {
+      font-size: clamp(0.9rem, 1.8vw, 1.2rem);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #4ade80;
+    }
+
+    .card p {
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      color: #d0d0d0;
+      line-height: 1.5;
+    }
+
+    .card ol, .card ul {
+      padding-left: 1.4em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .card li {
+      font-size: clamp(1rem, 1.8vw, 1.3rem);
+      color: #d0d0d0;
+      line-height: 1.4;
+    }
+
+    .card li::marker {
+      color: #4ade80;
+      font-weight: 700;
+    }
+
+    .note {
+      font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+      color: #555;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>trak <span>//</span> demo day</h1>
+
+  <div class="sections">
+
+    <div class="card">
+      <h2>What does it do?</h2>
+      <p>A social step-count fitness app. Compete with friends on live leaderboards, send powerup attacks, and stay motivated through friendly competition.</p>
+    </div>
+
+    <div class="card">
+      <h2>What did you learn?</h2>
+      <ul>
+        <li>Git & GitHub collaboration on a team: PRs, merge conflicts, shared history</li>
+        <li>Layered architecture to decouple parallel tracks. Abstract repo interfaces let frontend mock the backend until the API was settled; still didn't fully eliminate blocking</li>
+        <li>Backend as a service: creating backend APIs to match what the app needs, plus overall deployment management</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Demo flow</h2>
+      <ol>
+        <li>Login (step counter ticking live)</li>
+        <li>Add friend by username</li>
+        <li>Add friend by QR code</li>
+        <li>Adjust display name → leaderboard updates</li>
+        <li>Powerup / attack a friend</li>
+        <li>Historical leaderboards</li>
+        <li>Push notification via friend add</li>
+      </ol>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
