@@ -9,6 +9,10 @@ Parameters:
   UserPoolClientId:
     Type: String
     Description: Existing Cognito User Pool Client ID
+  FirebaseProjectId:
+    Type: String
+  FirebaseClientEmail:
+    Type: String
 
 Globals:
   Function:
@@ -25,6 +29,9 @@ Globals:
         SNAPSHOTS_TABLE: !Ref SnapshotsTable
         FRIEND_REQUESTS_TABLE: !Ref FriendRequestsTable
         AVATARS_BUCKET: !Ref AvatarsBucket
+        FIREBASE_PROJECT_ID: !Ref FirebaseProjectId
+        FIREBASE_CLIENT_EMAIL: !Ref FirebaseClientEmail
+        FIREBASE_PRIVATE_KEY_PARAM: /trak/firebase/private_key
 
 Resources:
 
@@ -275,6 +282,8 @@ Resources:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:
             TableName: !Ref FriendRequestsTable
+        - SSMParameterReadPolicy:
+            ParameterName: trak/firebase/private_key
       Events:
         SendFriendRequest:
           Type: HttpApi
@@ -325,6 +334,10 @@ Resources:
             TableName: !Ref StepsTable
         - DynamoDBReadPolicy:
             TableName: !Ref FriendsTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsersTable
+        - SSMParameterReadPolicy:
+            ParameterName: trak/firebase/private_key
       Events:
         GetInventory:
           Type: HttpApi
