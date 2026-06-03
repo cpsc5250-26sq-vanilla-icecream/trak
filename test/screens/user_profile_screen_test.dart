@@ -191,6 +191,8 @@ void main() {
             currentUserProvider.overrideWith(
               (ref) async => throw Exception('Failed to load profile'),
             ),
+            friendsProvider.overrideWith((ref) => Stream.value([])),
+            currentUserPointsProvider.overrideWith((ref) => 0),
           ],
           child: const MaterialApp(home: UserProfileScreen()),
         ),
