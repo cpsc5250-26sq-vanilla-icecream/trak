@@ -51,6 +51,7 @@ class UserProfileScreen extends ConsumerWidget {
                       label: 'Friends',
                       value: '$friendCount',
                       icon: Icons.people,
+                      onTap: () => context.push(AppRoute.addFriend),
                     ),
                   ),
                 ],
@@ -104,26 +105,32 @@ class _StatCard extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
+  final VoidCallback? onTap;
 
   const _StatCard({
     required this.label,
     required this.value,
     required this.icon,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 30),
-            Text(value, style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 4),
-            Text(label),
-          ],
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 30),
+              Text(value, style: Theme.of(context).textTheme.headlineMedium),
+              const SizedBox(height: 4),
+              Text(label),
+            ],
+          ),
         ),
       ),
     );
