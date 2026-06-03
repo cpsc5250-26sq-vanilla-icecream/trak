@@ -12,8 +12,7 @@ const _stepsUrl =
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
-  Workmanager().executeTask((taskName, _) async {
-    if (taskName != _taskName) return true;
+  Workmanager().executeTask((_, _) async {
     try {
       await _pushSteps();
     } catch (e) {
