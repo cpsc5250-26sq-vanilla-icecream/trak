@@ -224,6 +224,8 @@ class CloudRepository {
     );
 
     _check(response, 'updateAvatarUrl');
+  }
+
   Future<void> saveFcmToken(String token) async {
     final response = await _client.post(
       Uri.parse('$_base/users'),
