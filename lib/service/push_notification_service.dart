@@ -1,12 +1,16 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import '../background/step_sync_task.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint(
-    'Background message received: '
-    '${message.notification?.title}',
-  );
+  if (message.data['type'] == 'step_sync') {
+    try {
+      await pushSteps();
+    } catch (e) {
+      debugPrint('Background step sync error: $e');
+    }
+  }
 }
 
 class PushNotificationService {
@@ -27,7 +31,11 @@ class PushNotificationService {
         sound: true,
       );
       FirebaseMessaging.onMessage.listen((message) {
-        debugPrint('Foreground message: ${message.notification?.title}');
+        if (message.data['type'] == 'step_sync') {
+          pushSteps().catchError((e) {
+            debugPrint('Foreground step sync error: $e');
+          });
+        }
       });
       _initialized = true;
     }
