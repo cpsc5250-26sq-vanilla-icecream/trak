@@ -17,9 +17,8 @@ const getUserId = (event) => event.requestContext.authorizer.jwt.claims.sub;
 const stepsToPoints = (steps) => Math.floor(steps * POINTS_PER_STEP);
 
 function endOfDayMs() {
-  const d = new Date();
-  d.setUTCHours(23, 59, 59, 999);
-  return d.getTime();
+  const todayPst = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  return new Date(`${todayPst}T23:59:59-08:00`).getTime();
 }
 
 function generateItem(userId) {
@@ -45,7 +44,7 @@ async function submitSteps(event) {
     return res(400, { message: "stepCount must be a non-negative number" });
   }
 
-  const today = date ?? new Date().toISOString().split("T")[0];
+  const today = date ?? new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
   const now = new Date().toISOString();
 
   const existing = await ddb.send(new GetCommand({ TableName: STEPS_TABLE, Key: { userId, date: today } }));

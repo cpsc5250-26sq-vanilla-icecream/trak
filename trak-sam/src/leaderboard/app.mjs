@@ -14,7 +14,7 @@ const res = (statusCode, body) => ({
 });
 
 const getUserId = (event) => event.requestContext.authorizer.jwt.claims.sub;
-const todayDate = () => new Date().toISOString().split("T")[0];
+const todayDate = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
 const stepsToPoints = (steps) => Math.floor((steps ?? 0) / 100);
 
 async function getTodayLeaderboard(userId, date) {
