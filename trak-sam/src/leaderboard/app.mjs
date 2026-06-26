@@ -17,6 +17,14 @@ const getUserId = (event) => event.requestContext.authorizer.jwt.claims.sub;
 const todayDate = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
 const stepsToPoints = (steps) => Math.floor((steps ?? 0) / 100);
 
+function todayResetUtcMs() {
+  const now = new Date();
+  const todayPst = now.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  const utcMs = Number(new Date(now.toLocaleString('en-US', { timeZone: 'UTC' })));
+  const pacMs = Number(new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
+  return new Date(`${todayPst}T00:00:00Z`).getTime() + (utcMs - pacMs);
+}
+
 async function getTodayLeaderboard(userId, date) {
   const friendsResult = await ddb.send(new QueryCommand({
     TableName: FRIENDS_TABLE,
@@ -87,7 +95,7 @@ export const handler = async (event) => {
       if (!entries) return res(404, { message: "No snapshot available for that date" });
       return res(200, entries);
     }
-    return res(200, await getTodayLeaderboard(userId, today));
+    return res(200, { entries: await getTodayLeaderboard(userId, today), resetTimeUtc: todayResetUtcMs() });
   } catch (err) {
     console.error(err);
     return res(500, { message: "Internal server error" });

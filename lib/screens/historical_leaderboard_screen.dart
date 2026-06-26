@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../database/app_database.dart';
 import '../providers/app_providers.dart';
 import '../widgets/leaderboard_widget.dart';
 
@@ -16,8 +17,9 @@ class _HistoricalLeaderboardScreenState
     extends ConsumerState<HistoricalLeaderboardScreen> {
   late DateTime _selected;
   late DateTime _focused;
+  late DateTime _lastDay;
 
-  static DateTime get _yesterday {
+  static DateTime _utcYesterday() {
     final now = DateTime.now().toUtc();
     return DateTime.utc(
       now.year,
@@ -29,8 +31,35 @@ class _HistoricalLeaderboardScreenState
   @override
   void initState() {
     super.initState();
-    _selected = _yesterday;
-    _focused = _selected;
+    _lastDay = _utcYesterday();
+    _selected = _lastDay;
+    _focused = _lastDay;
+    _loadYesterday();
+  }
+
+  Future<void> _loadYesterday() async {
+    try {
+      final resetMs = await AppDatabase.instance.getResetTimeUtc(
+        AppDatabase.defaultLeaderboardId,
+      );
+      if (resetMs == null || !mounted) return;
+      final resetUtc = DateTime.fromMillisecondsSinceEpoch(
+        resetMs,
+        isUtc: true,
+      );
+      final yesterday = DateTime.utc(
+        resetUtc.year,
+        resetUtc.month,
+        resetUtc.day,
+      ).subtract(const Duration(days: 1));
+      setState(() {
+        _lastDay = yesterday;
+        _selected = yesterday;
+        _focused = yesterday;
+      });
+    } catch (e) {
+      debugPrint('Failed to load reset time from DB: $e');
+    }
   }
 
   String get _isoDate =>
@@ -41,7 +70,6 @@ class _HistoricalLeaderboardScreenState
   @override
   Widget build(BuildContext context) {
     final currentUserId = ref.watch(currentUserProvider).asData?.value.userId;
-    final yesterday = _yesterday;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Past Leaderboards')),
@@ -49,7 +77,7 @@ class _HistoricalLeaderboardScreenState
         children: [
           TableCalendar(
             firstDay: DateTime.utc(2025, 1, 1),
-            lastDay: yesterday,
+            lastDay: _lastDay,
             focusedDay: _focused,
             selectedDayPredicate: (day) => isSameDay(day, _selected),
             onDaySelected: (selected, focused) => setState(() {

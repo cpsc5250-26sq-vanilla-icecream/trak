@@ -52,10 +52,12 @@ class CachingAppRepository implements AppRepository {
     await _cloud.addFriend(username);
     final results = await Future.wait([
       _cloud.fetchFriends(),
-      _cloud.fetchLeaderboard(),
+      _cloud.fetchTodayLeaderboard(),
     ]);
     await _cache.pushFriends(results[0] as List<Friend>);
-    await _cache.pushLeaderboard(results[1] as List<LeaderboardEntry>);
+    final lb =
+        results[1] as ({List<LeaderboardEntry> entries, int resetTimeUtc});
+    await _cache.pushLeaderboard(lb.entries, resetTimeUtc: lb.resetTimeUtc);
   }
 
   @override
@@ -63,10 +65,12 @@ class CachingAppRepository implements AppRepository {
     await _cloud.removeFriend(friendId);
     final results = await Future.wait([
       _cloud.fetchFriends(),
-      _cloud.fetchLeaderboard(),
+      _cloud.fetchTodayLeaderboard(),
     ]);
     await _cache.pushFriends(results[0] as List<Friend>);
-    await _cache.pushLeaderboard(results[1] as List<LeaderboardEntry>);
+    final lb =
+        results[1] as ({List<LeaderboardEntry> entries, int resetTimeUtc});
+    await _cache.pushLeaderboard(lb.entries, resetTimeUtc: lb.resetTimeUtc);
   }
 
   @override
@@ -81,8 +85,13 @@ class CachingAppRepository implements AppRepository {
             (e) => safePrint('useItem: inventory refresh failed: $e'),
           ),
       _cloud
-          .fetchLeaderboard()
-          .then(_cache.pushLeaderboard)
+          .fetchTodayLeaderboard()
+          .then(
+            (lb) => _cache.pushLeaderboard(
+              lb.entries,
+              resetTimeUtc: lb.resetTimeUtc,
+            ),
+          )
           .catchError(
             (e) => safePrint('useItem: leaderboard refresh failed: $e'),
           ),
@@ -99,10 +108,12 @@ class CachingAppRepository implements AppRepository {
     await _cloud.acceptFriendRequest(fromUserId);
     final results = await Future.wait([
       _cloud.fetchFriends(),
-      _cloud.fetchLeaderboard(),
+      _cloud.fetchTodayLeaderboard(),
     ]);
     await _cache.pushFriends(results[0] as List<Friend>);
-    await _cache.pushLeaderboard(results[1] as List<LeaderboardEntry>);
+    final lb =
+        results[1] as ({List<LeaderboardEntry> entries, int resetTimeUtc});
+    await _cache.pushLeaderboard(lb.entries, resetTimeUtc: lb.resetTimeUtc);
   }
 
   @override

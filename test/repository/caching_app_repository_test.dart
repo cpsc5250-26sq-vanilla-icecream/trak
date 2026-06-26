@@ -42,6 +42,10 @@ class _FakeCloud extends CloudRepository {
       leaderboard;
 
   @override
+  Future<({List<LeaderboardEntry> entries, int resetTimeUtc})>
+  fetchTodayLeaderboard() async => (entries: leaderboard, resetTimeUtc: 0);
+
+  @override
   Future<List<Friend>> fetchFriends() async => [];
 }
 
@@ -50,7 +54,11 @@ class _FakeCache extends SqfRepository {
   List<Friend>? pushedFriends;
 
   @override
-  Future<void> pushLeaderboard(List<LeaderboardEntry> entries) async {
+  Future<void> pushLeaderboard(
+    List<LeaderboardEntry> entries, {
+    required int resetTimeUtc,
+    String leaderboardId = 'default',
+  }) async {
     pushedLeaderboard = entries;
   }
 

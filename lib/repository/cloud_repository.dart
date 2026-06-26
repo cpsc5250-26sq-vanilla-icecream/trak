@@ -107,14 +107,30 @@ class CloudRepository {
     _check(response, 'setUsername');
   }
 
+  Future<({List<LeaderboardEntry> entries, int resetTimeUtc})>
+  fetchTodayLeaderboard() async {
+    final response = await _client.get(
+      Uri.parse('$_base/leaderboard'),
+      headers: await _headers(),
+    );
+    _check(response, 'fetchTodayLeaderboard');
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final entries = (body['entries'] as List<dynamic>)
+        .map((e) => LeaderboardEntry.fromCloud(e as Map<String, dynamic>))
+        .toList();
+    return (entries: entries, resetTimeUtc: body['resetTimeUtc'] as int);
+  }
+
   Future<List<LeaderboardEntry>> fetchLeaderboard({String? date}) async {
-    final uri = date != null
-        ? Uri.parse(
-            '$_base/leaderboard',
-          ).replace(queryParameters: {'date': date})
-        : Uri.parse('$_base/leaderboard');
+    if (date == null) {
+      final result = await fetchTodayLeaderboard();
+      return result.entries;
+    }
+    final uri = Uri.parse(
+      '$_base/leaderboard',
+    ).replace(queryParameters: {'date': date});
     final response = await _client.get(uri, headers: await _headers());
-    if (date != null && response.statusCode == 404) return [];
+    if (response.statusCode == 404) return [];
     _check(response, 'fetchLeaderboard');
     final list = jsonDecode(response.body) as List<dynamic>;
     return list

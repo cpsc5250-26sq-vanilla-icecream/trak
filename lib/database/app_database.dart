@@ -12,6 +12,7 @@ class AppDatabase {
   static const syncKeyLeaderboard = 'leaderboard';
   static const syncKeyFriends = 'friends';
   static const syncKeyInventory = 'inventory';
+  static const defaultLeaderboardId = 'default';
 
   AppDatabase._();
 
@@ -20,7 +21,7 @@ class AppDatabase {
   static Future<AppDatabase> openInMemory() async {
     final db = await openDatabase(
       inMemoryDatabasePath,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -41,13 +42,20 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
   }
 
   static Future<void> _createDB(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE leaderboard_meta (
+        leaderboard_id TEXT PRIMARY KEY,
+        reset_time_utc INTEGER NOT NULL,
+        cached_at INTEGER NOT NULL
+      )
+    ''');
     await db.execute('''
     CREATE TABLE leaderboard_cache (
       user_id TEXT PRIMARY KEY,
@@ -111,6 +119,35 @@ class AppDatabase {
         'ALTER TABLE leaderboard_cache ADD COLUMN display_name TEXT',
       );
     }
+    if (oldVersion < 4) {
+      await db.execute('''
+        CREATE TABLE leaderboard_meta (
+          leaderboard_id TEXT PRIMARY KEY,
+          reset_time_utc INTEGER NOT NULL,
+          cached_at INTEGER NOT NULL
+        )
+      ''');
+    }
+  }
+
+  Future<void> saveResetTimeUtc(String leaderboardId, int resetTimeUtc) async {
+    final db = await database;
+    await db.insert('leaderboard_meta', {
+      'leaderboard_id': leaderboardId,
+      'reset_time_utc': resetTimeUtc,
+      'cached_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<int?> getResetTimeUtc(String leaderboardId) async {
+    final db = await database;
+    final result = await db.query(
+      'leaderboard_meta',
+      where: 'leaderboard_id = ?',
+      whereArgs: [leaderboardId],
+    );
+    if (result.isEmpty) return null;
+    return result.first['reset_time_utc'] as int;
   }
 
   Future<void> replaceLeaderboard(List<LeaderboardEntry> entries) async {
