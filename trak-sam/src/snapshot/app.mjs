@@ -8,9 +8,8 @@ const STEPS_TABLE = process.env.STEPS_TABLE;
 const SNAPSHOTS_TABLE = process.env.SNAPSHOTS_TABLE;
 
 function yesterdayDate() {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - 1);
-  return d.toISOString().split("T")[0];
+  const d = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  return d.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
 }
 
 export const handler = async () => {

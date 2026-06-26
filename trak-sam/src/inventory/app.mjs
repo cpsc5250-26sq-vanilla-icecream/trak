@@ -102,7 +102,7 @@ async function useItem(event) {
     }
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
   const now = new Date().toISOString();
 
   const stepsResult = await ddb.send(new GetCommand({
