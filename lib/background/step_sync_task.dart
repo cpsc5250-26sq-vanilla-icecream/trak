@@ -15,7 +15,7 @@ const _stepsUrl =
 void callbackDispatcher() {
   Workmanager().executeTask((_, _) async {
     try {
-      await _pushSteps();
+      await pushSteps();
     } catch (e) {
       safePrint('Background step sync error: $e');
     }
@@ -23,7 +23,7 @@ void callbackDispatcher() {
   });
 }
 
-Future<void> _pushSteps() async {
+Future<void> pushSteps() async {
   if (!Amplify.isConfigured) {
     await Amplify.addPlugin(AmplifyAuthCognito());
     await Amplify.configure(amplifyConfig);

@@ -358,6 +358,23 @@ Resources:
             Path: /inventory
             Method: POST
 
+  StepSyncWakeupFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/step-sync-wakeup/
+      Handler: app.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - SSMParameterReadPolicy:
+            ParameterName: trak/firebase/private_key
+      Events:
+        StepSyncSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0/30 * * * ? *)
+            Description: Wake iOS devices every 30 min for background step sync
+
   SnapshotFunction:
     Type: AWS::Serverless::Function
     Properties:
