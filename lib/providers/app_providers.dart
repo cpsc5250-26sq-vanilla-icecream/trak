@@ -61,6 +61,10 @@ final friendsProvider = StreamProvider<List<Friend>>(
   (ref) => ref.watch(repositoryProvider).watchFriends(),
 );
 
+final resetTimeProvider = StreamProvider<DateTime?>(
+  (ref) => ref.watch(repositoryProvider).watchResetTime(),
+);
+
 final friendRequestsProvider = FutureProvider<List<FriendRequest>>(
   (ref) => ref.watch(repositoryProvider).getFriendRequests(),
 );

@@ -14,6 +14,7 @@ class SqfRepository {
   final _inventoryController =
       StreamController<List<InventoryItem>>.broadcast();
   final _friendsController = StreamController<List<Friend>>.broadcast();
+  final _resetTimeController = StreamController<DateTime?>.broadcast();
 
   String _today() => DateTime.now().toIso8601String().split('T').first;
 
@@ -31,6 +32,9 @@ class SqfRepository {
     await _db.saveResetTimeUtc(leaderboardId, resetTimeUtc);
     await _db.updateSyncTime(AppDatabase.syncKeyLeaderboard);
     _leaderboardController.add(entries);
+    _resetTimeController.add(
+      DateTime.fromMillisecondsSinceEpoch(resetTimeUtc, isUtc: true),
+    );
   }
 
   Future<void> putSteps(int stepCount) async {
@@ -70,6 +74,23 @@ class SqfRepository {
     return _inventoryController.stream;
   }
 
+  Future<DateTime?> getResetTimeUtc({
+    String leaderboardId = AppDatabase.defaultLeaderboardId,
+  }) async {
+    final ms = await _db.getResetTimeUtc(leaderboardId);
+    if (ms == null) return null;
+    return DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
+  }
+
+  Stream<DateTime?> watchResetTimeUtc({
+    String leaderboardId = AppDatabase.defaultLeaderboardId,
+  }) {
+    getResetTimeUtc(leaderboardId: leaderboardId).then((resetTime) {
+      if (!_resetTimeController.isClosed) _resetTimeController.add(resetTime);
+    });
+    return _resetTimeController.stream;
+  }
+
   Stream<List<Friend>> watchFriends() {
     _db.getFriends().then((friends) {
       if (!_friendsController.isClosed) _friendsController.add(friends);
@@ -82,5 +103,6 @@ class SqfRepository {
     _leaderboardController.close();
     _inventoryController.close();
     _friendsController.close();
+    _resetTimeController.close();
   }
 }

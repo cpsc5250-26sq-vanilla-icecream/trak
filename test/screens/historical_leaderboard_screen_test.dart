@@ -30,6 +30,8 @@ class _FakeRepo implements AppRepository {
   @override
   Stream<List<Friend>> watchFriends() => const Stream.empty();
   @override
+  Stream<DateTime?> watchResetTime() => const Stream.empty();
+  @override
   Future<UserProfile> getCurrentUser() async => const UserProfile(
     userId: 'me',
     username: 'tester',

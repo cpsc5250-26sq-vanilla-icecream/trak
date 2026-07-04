@@ -280,6 +280,16 @@ class MockAppRepository implements AppRepository {
     yield* _friendsController.stream;
   }
 
+  @override
+  Stream<DateTime?> watchResetTime() async* {
+    // Approximates PDT midnight (UTC-7) since there's no timezone
+    // database available on the client; good enough for mock/dev use.
+    final now = DateTime.now().toUtc();
+    var reset = DateTime.utc(now.year, now.month, now.day, 7);
+    if (!reset.isAfter(now)) reset = reset.add(const Duration(days: 1));
+    yield reset;
+  }
+
   static List<FriendRequest> _initialFriendRequests() => [
     FriendRequest(
       fromUserId: 'user-005',
