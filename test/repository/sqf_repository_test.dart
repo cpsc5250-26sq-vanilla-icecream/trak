@@ -59,30 +59,38 @@ void main() {
     });
 
     test('pushLeaderboard persists entries and stream emits them', () async {
-      await repo.pushLeaderboard([alice, bob]);
+      await repo.pushLeaderboard([alice, bob], resetTimeUtc: 1_700_000_000_000);
       final entries = await repo.watchLeaderboard().first;
       expect(entries.map((e) => e.userId), containsAll(['u1', 'u2']));
     });
 
     test('pushLeaderboard replaces previous entries', () async {
-      await repo.pushLeaderboard([alice, bob]);
+      await repo.pushLeaderboard([alice, bob], resetTimeUtc: 1_700_000_000_000);
       const carol = LeaderboardEntry(
         userId: 'u3',
         username: 'carol',
         totalPoints: 1200,
         rank: 1,
       );
-      await repo.pushLeaderboard([carol]);
+      await repo.pushLeaderboard([carol], resetTimeUtc: 1_700_000_000_000);
       final entries = await repo.watchLeaderboard().first;
       expect(entries, hasLength(1));
       expect(entries.first.userId, 'u3');
     });
 
     test('entries are returned ordered by rank', () async {
-      await repo.pushLeaderboard([bob, alice]);
+      await repo.pushLeaderboard([bob, alice], resetTimeUtc: 1_700_000_000_000);
       final entries = await repo.watchLeaderboard().first;
       expect(entries.first.rank, 1);
       expect(entries.last.rank, 2);
+    });
+
+    test('pushLeaderboard persists resetTimeUtc to leaderboard_meta', () async {
+      await repo.pushLeaderboard([alice], resetTimeUtc: 1_700_000_000_000);
+      final saved = await appDb.getResetTimeUtc(
+        AppDatabase.defaultLeaderboardId,
+      );
+      expect(saved, 1_700_000_000_000);
     });
   });
 }

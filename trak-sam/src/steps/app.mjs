@@ -17,8 +17,12 @@ const getUserId = (event) => event.requestContext.authorizer.jwt.claims.sub;
 const stepsToPoints = (steps) => Math.floor(steps * POINTS_PER_STEP);
 
 function endOfDayMs() {
-  const todayPst = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
-  return new Date(`${todayPst}T23:59:59-08:00`).getTime();
+  const now = new Date();
+  const todayPst = now.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  const utcMs = Number(new Date(now.toLocaleString('en-US', { timeZone: 'UTC' })));
+  const pacMs = Number(new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })));
+  const offsetHours = (utcMs - pacMs) / 3_600_000;
+  return new Date(`${todayPst}T23:59:59-${String(offsetHours).padStart(2, '0')}:00`).getTime();
 }
 
 function generateItem(userId) {

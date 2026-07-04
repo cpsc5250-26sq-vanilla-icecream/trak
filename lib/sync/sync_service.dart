@@ -57,8 +57,8 @@ class SyncService {
   }
 
   Future<void> _syncLeaderboard() async {
-    final entries = await _cloud.fetchLeaderboard();
-    await _repo.pushLeaderboard(entries);
+    final (:entries, :resetTimeUtc) = await _cloud.fetchTodayLeaderboard();
+    await _repo.pushLeaderboard(entries, resetTimeUtc: resetTimeUtc);
   }
 
   Future<void> _syncFriends() async {

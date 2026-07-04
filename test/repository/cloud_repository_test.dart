@@ -91,34 +91,42 @@ void main() {
     });
   });
 
-  group('CloudRepository.fetchLeaderboard', () {
-    test('deserializes entries correctly', () async {
+  group('CloudRepository.fetchTodayLeaderboard', () {
+    test('deserializes entries and resetTimeUtc correctly', () async {
       final repo = _repo(
         (_) async => http.Response(
-          jsonEncode([
-            {'userId': 'u1', 'username': 'alice', 'points': 800, 'rank': 1},
-            {'userId': 'u2', 'username': 'bob', 'points': 400, 'rank': 2},
-          ]),
+          jsonEncode({
+            'entries': [
+              {'userId': 'u1', 'username': 'alice', 'points': 800, 'rank': 1},
+              {'userId': 'u2', 'username': 'bob', 'points': 400, 'rank': 2},
+            ],
+            'resetTimeUtc': 1234567890000,
+          }),
           200,
         ),
       );
 
-      final entries = await repo.fetchLeaderboard();
+      final result = await repo.fetchTodayLeaderboard();
 
-      expect(entries, hasLength(2));
-      expect(entries[0].userId, 'u1');
-      expect(entries[0].totalPoints, 800);
-      expect(entries[1].rank, 2);
+      expect(result.entries, hasLength(2));
+      expect(result.entries[0].userId, 'u1');
+      expect(result.entries[0].totalPoints, 800);
+      expect(result.entries[1].rank, 2);
+      expect(result.resetTimeUtc, 1234567890000);
     });
 
-    test('returns empty list for empty array', () async {
-      final repo = _repo((_) async => http.Response('[]', 200));
-      expect(await repo.fetchLeaderboard(), isEmpty);
+    test('returns empty entries list when entries is empty', () async {
+      final repo = _repo(
+        (_) async =>
+            http.Response(jsonEncode({'entries': [], 'resetTimeUtc': 0}), 200),
+      );
+      final result = await repo.fetchTodayLeaderboard();
+      expect(result.entries, isEmpty);
     });
 
     test('throws on non-2xx', () async {
       final repo = _repo((_) async => http.Response('', 503));
-      await expectLater(repo.fetchLeaderboard(), throwsException);
+      await expectLater(repo.fetchTodayLeaderboard(), throwsException);
     });
   });
 

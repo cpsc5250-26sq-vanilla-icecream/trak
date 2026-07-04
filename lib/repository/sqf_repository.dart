@@ -22,8 +22,13 @@ class SqfRepository {
     _stepsController.add(steps ?? 0);
   }
 
-  Future<void> pushLeaderboard(List<LeaderboardEntry> entries) async {
+  Future<void> pushLeaderboard(
+    List<LeaderboardEntry> entries, {
+    required int resetTimeUtc,
+    String leaderboardId = AppDatabase.defaultLeaderboardId,
+  }) async {
     await _db.replaceLeaderboard(entries);
+    await _db.saveResetTimeUtc(leaderboardId, resetTimeUtc);
     await _db.updateSyncTime(AppDatabase.syncKeyLeaderboard);
     _leaderboardController.add(entries);
   }

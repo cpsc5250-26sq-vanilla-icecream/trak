@@ -5,6 +5,7 @@ import 'package:health/health.dart';
 import 'package:http/http.dart' as http;
 import 'package:workmanager/workmanager.dart';
 import '../auth/amplify_config.dart';
+import '../database/app_database.dart';
 
 const _taskName = 'trak.stepSync';
 const _stepsUrl =
@@ -32,15 +33,17 @@ Future<void> pushSteps() async {
   if (!session.isSignedIn) return;
   final token = session.userPoolTokensResult.value.idToken.raw;
 
+  final now = DateTime.now();
+  final resetMs = await AppDatabase.instance.getResetTimeUtc(
+    AppDatabase.defaultLeaderboardId,
+  );
+  final start = resetMs != null
+      ? DateTime.fromMillisecondsSinceEpoch(resetMs, isUtc: true).toLocal()
+      : DateTime(now.year, now.month, now.day);
+
   final health = Health();
   await health.requestAuthorization([HealthDataType.STEPS]);
-  final now = DateTime.now();
-  final steps =
-      await health.getTotalStepsInInterval(
-        DateTime(now.year, now.month, now.day),
-        now,
-      ) ??
-      0;
+  final steps = await health.getTotalStepsInInterval(start, now) ?? 0;
 
   await http.post(
     Uri.parse(_stepsUrl),
