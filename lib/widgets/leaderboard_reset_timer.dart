@@ -84,7 +84,10 @@ class _LeaderboardResetTimerState extends ConsumerState<LeaderboardResetTimer> {
               color: theme.colorScheme.outline,
             ),
             const SizedBox(width: 4),
-            Text(_formatCountdown(remaining), style: theme.textTheme.labelSmall),
+            Text(
+              _formatCountdown(remaining),
+              style: theme.textTheme.labelSmall,
+            ),
           ],
         ),
       ),
