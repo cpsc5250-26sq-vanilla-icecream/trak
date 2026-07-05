@@ -50,6 +50,9 @@ class _FakeRepository implements AppRepository {
   Stream<List<Friend>> watchFriends() => Stream.value(friends);
 
   @override
+  Stream<DateTime?> watchResetTime() => const Stream.empty();
+
+  @override
   Stream<List<LeaderboardEntry>> watchLeaderboard() => Stream.value([]);
   @override
   Stream<List<InventoryItem>> watchInventory() => Stream.value([]);

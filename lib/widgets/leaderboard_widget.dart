@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/leaderboard_entry.dart';
 import '../providers/app_providers.dart';
+import 'leaderboard_reset_timer.dart';
 
 class LeaderboardWidget extends ConsumerWidget {
   final VoidCallback? onHistoryTap;
@@ -20,13 +21,19 @@ class LeaderboardWidget extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Leaderboard', style: Theme.of(context).textTheme.titleMedium),
-            if (onHistoryTap != null)
-              IconButton(
-                icon: const Icon(Icons.history),
-                tooltip: 'Past leaderboards',
-                iconSize: 20,
-                onPressed: onHistoryTap,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const LeaderboardResetTimer(),
+                if (onHistoryTap != null)
+                  IconButton(
+                    icon: const Icon(Icons.history),
+                    tooltip: 'Past leaderboards',
+                    iconSize: 20,
+                    onPressed: onHistoryTap,
+                  ),
+              ],
+            ),
           ],
         ),
         const SizedBox(height: 8),

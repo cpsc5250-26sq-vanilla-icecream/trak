@@ -28,6 +28,9 @@ class _FakeRepository implements AppRepository {
   Stream<List<Friend>> watchFriends() => Stream.value(friends);
 
   @override
+  Stream<DateTime?> watchResetTime() => const Stream.empty();
+
+  @override
   Future<UseItemResult> useItem(String itemId, String targetUserId) async {
     usedItemId = itemId;
     usedTargetId = targetUserId;

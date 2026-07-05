@@ -35,6 +35,9 @@ class CachingAppRepository implements AppRepository {
   Stream<List<Friend>> watchFriends() => _cache.watchFriends();
 
   @override
+  Stream<DateTime?> watchResetTime() => _cache.watchResetTimeUtc();
+
+  @override
   Future<UserProfile> getCurrentUser() => _cloud.getCurrentUser();
 
   @override

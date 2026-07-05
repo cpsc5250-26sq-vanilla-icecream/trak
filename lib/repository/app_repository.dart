@@ -11,6 +11,7 @@ abstract class AppRepository {
   Stream<List<InventoryItem>> watchInventory();
   Stream<int> watchStepCount();
   Stream<List<Friend>> watchFriends();
+  Stream<DateTime?> watchResetTime();
   Future<UserProfile> getCurrentUser();
 
   Future<void> updateDisplayName(String displayName);
