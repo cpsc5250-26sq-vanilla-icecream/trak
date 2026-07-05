@@ -49,7 +49,22 @@ class _LeaderboardResetTimerState extends ConsumerState<LeaderboardResetTimer> {
 
     final theme = Theme.of(context);
     final localResetTime = resetTimeUtc.toLocal();
-    final remaining = localResetTime.difference(DateTime.now());
+    final now = DateTime.now();
+    // The backend anchor is today's reset boundary, which is usually already in
+    // the past by the time this is read — roll forward to the next occurrence
+    // of that daily reset time on the device's local calendar.
+    var nextReset = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      localResetTime.hour,
+      localResetTime.minute,
+      localResetTime.second,
+    );
+    if (!nextReset.isAfter(now)) {
+      nextReset = nextReset.add(const Duration(days: 1));
+    }
+    final remaining = nextReset.difference(now);
     final resetClock = TimeOfDay.fromDateTime(localResetTime).format(context);
 
     return Tooltip(
