@@ -390,12 +390,36 @@ Resources:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:
             TableName: !Ref SnapshotsTable
-      Events:
-        DailySnapshot:
-          Type: Schedule
-          Properties:
-            Schedule: cron(5 0 * * ? *)
-            Description: Snapshot daily leaderboards at 00:05 UTC
+
+  SnapshotSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      ScheduleExpression: "cron(0 0 * * ? *)"
+      ScheduleExpressionTimezone: "America/Los_Angeles"
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt SnapshotFunction.Arn
+        RoleArn: !GetAtt SnapshotSchedulerRole.Arn
+
+  SnapshotSchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeSnapshotFunction
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt SnapshotFunction.Arn
 
 Outputs:
   ApiUrl:
