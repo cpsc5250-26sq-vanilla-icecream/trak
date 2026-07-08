@@ -37,9 +37,15 @@ Future<void> pushSteps() async {
   final resetMs = await AppDatabase.instance.getResetTimeUtc(
     AppDatabase.defaultLeaderboardId,
   );
-  final start = resetMs != null
+  final today = DateTime(now.year, now.month, now.day);
+  final cachedReset = resetMs != null
       ? DateTime.fromMillisecondsSinceEpoch(resetMs, isUtc: true).toLocal()
-      : DateTime(now.year, now.month, now.day);
+      : null;
+  // Only use the cached reset time if it falls within today. After midnight
+  // the cached value is yesterday's boundary and would pull in the prior day's steps.
+  final start = (cachedReset != null && cachedReset.isAfter(today))
+      ? cachedReset
+      : today;
 
   final health = Health();
   await health.requestAuthorization([HealthDataType.STEPS]);
