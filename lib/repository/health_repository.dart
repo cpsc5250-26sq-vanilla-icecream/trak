@@ -13,9 +13,13 @@ class HealthRepository {
     final resetMs = await AppDatabase.instance.getResetTimeUtc(
       AppDatabase.defaultLeaderboardId,
     );
-    final start = resetMs != null
+    final today = DateTime(now.year, now.month, now.day);
+    final cachedReset = resetMs != null
         ? DateTime.fromMillisecondsSinceEpoch(resetMs, isUtc: true).toLocal()
-        : DateTime(now.year, now.month, now.day);
+        : null;
+    final start = (cachedReset != null && cachedReset.isAfter(today))
+        ? cachedReset
+        : today;
 
     final steps = await _health.getTotalStepsInInterval(start, now);
 
