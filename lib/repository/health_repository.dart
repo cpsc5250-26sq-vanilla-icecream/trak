@@ -1,5 +1,6 @@
 import 'package:health/health.dart';
 import '../database/app_database.dart';
+import '../utils/points_utils.dart';
 
 class HealthRepository {
   final Health _health = Health();
@@ -13,13 +14,7 @@ class HealthRepository {
     final resetMs = await AppDatabase.instance.getResetTimeUtc(
       AppDatabase.defaultLeaderboardId,
     );
-    final today = DateTime(now.year, now.month, now.day);
-    final cachedReset = resetMs != null
-        ? DateTime.fromMillisecondsSinceEpoch(resetMs, isUtc: true).toLocal()
-        : null;
-    final start = (cachedReset != null && cachedReset.isAfter(today))
-        ? cachedReset
-        : today;
+    final start = resolveStepWindowStart(now, resetMs);
 
     final steps = await _health.getTotalStepsInInterval(start, now);
 

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:workmanager/workmanager.dart';
 import '../auth/amplify_config.dart';
 import '../database/app_database.dart';
+import '../utils/points_utils.dart';
 
 const _taskName = 'trak.stepSync';
 const _stepsUrl =
@@ -37,15 +38,7 @@ Future<void> pushSteps() async {
   final resetMs = await AppDatabase.instance.getResetTimeUtc(
     AppDatabase.defaultLeaderboardId,
   );
-  final today = DateTime(now.year, now.month, now.day);
-  final cachedReset = resetMs != null
-      ? DateTime.fromMillisecondsSinceEpoch(resetMs, isUtc: true).toLocal()
-      : null;
-  // Only use the cached reset time if it falls within today. After midnight
-  // the cached value is yesterday's boundary and would pull in the prior day's steps.
-  final start = (cachedReset != null && cachedReset.isAfter(today))
-      ? cachedReset
-      : today;
+  final start = resolveStepWindowStart(now, resetMs);
 
   final health = Health();
   await health.requestAuthorization([HealthDataType.STEPS]);
