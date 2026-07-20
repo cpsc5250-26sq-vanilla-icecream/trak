@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:workmanager/workmanager.dart';
 import '../auth/amplify_config.dart';
 import '../database/app_database.dart';
+import '../utils/points_utils.dart';
 
 const _taskName = 'trak.stepSync';
 const _stepsUrl =
@@ -37,9 +38,7 @@ Future<void> pushSteps() async {
   final resetMs = await AppDatabase.instance.getResetTimeUtc(
     AppDatabase.defaultLeaderboardId,
   );
-  final start = resetMs != null
-      ? DateTime.fromMillisecondsSinceEpoch(resetMs, isUtc: true).toLocal()
-      : DateTime(now.year, now.month, now.day);
+  final start = resolveStepWindowStart(now, resetMs);
 
   final health = Health();
   await health.requestAuthorization([HealthDataType.STEPS]);
