@@ -42,7 +42,7 @@ dependencies:
   amplify_flutter: ^2.0.0
   amplify_auth_cognito: ^2.0.0
   http: ^1.2.0
-  firebase_messaging: ^16.2.2
+  firebase_messaging: ^16.5.0
   firebase_core: ^4.12.1
   mobile_scanner: ^7.4.0
   qr_flutter: ^4.1.0
